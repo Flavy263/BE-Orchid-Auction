@@ -1,10 +1,14 @@
-// routes.js
+const express = require("express");
+const passport = require("passport");
+const auctionController = require("../controllers/auctionController");
 
-const express = require('express');
 const router = express.Router();
-const auctionController = require('../controllers/auctionController');
+const authenticateJWT = passport.authenticate("jwt", { session: false });
 
-// Define endpoint to handle new bid
-router.post('/auction/:auctionId/new-bid', auctionController.handleNewBid);
+router.get("/", authenticateJWT, auctionController.getAllAuction);
+router.post("/", authenticateJWT, auctionController.createAuction);
+router.get("/:auctionId", authenticateJWT, auctionController.getAuctionByID);
+router.put("/:auctionId", authenticateJWT, auctionController.updateAuctionByID);
+router.delete("/:auctionId", authenticateJWT, auctionController.deleteAuctionByID);
 
 module.exports = router;

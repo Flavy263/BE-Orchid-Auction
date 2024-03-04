@@ -8,6 +8,9 @@ var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 const roleRouter = require("./routes/role");
 const productRouter = require("./routes/product");
+const auctionRouter = require("./routes/auction");
+const walletRouter = require("./routes/wallet");
+const walletHistoryRouter = require("./routes/walletHistory");
 const cors = require('cors');
 var app = express();
 const mongoose = require("mongoose");
@@ -46,6 +49,9 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use("/roles", roleRouter);
 app.use("/products", productRouter);
+app.use("/auctions", auctionRouter);
+app.use("/wallets", walletRouter);
+app.use("/walletsHistory", walletHistoryRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
