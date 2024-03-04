@@ -1,9 +1,8 @@
-
 const User = require("../models/User");
-const passport = require('passport');
-const bcrypt = require('bcrypt');
-const authenticate = require('../authenticate');
-exports.getAllUser = ((req, res, next) => {
+const passport = require("passport");
+const bcrypt = require("bcrypt");
+const authenticate = require("../authenticate");
+exports.getAllUser = (req, res, next) => {
   User.find({})
     .then(
       (course) => {
@@ -14,30 +13,45 @@ exports.getAllUser = ((req, res, next) => {
       (err) => next(err)
     )
     .catch((err) => next(err));
-})
-exports.postAddUser = ((req, res, next) => {
+};
+exports.postAddUser = (req, res, next) => {
   bcrypt.hash(req.body.password, 10, (err, hash) => {
     if (err) {
-      return res.status(500).json({ success: false, message: 'Could not create hash!' });
+      return res
+        .status(500)
+        .json({ success: false, message: "Could not create hash!" });
     }
-    User.register(new User({ username: req.body.username, password: hash, email: req.body.email, image: req.body.image, gender: req.body.gender, address: req.body.address, fullName: req.body.fullName, status: req.body.status, phone: req.body.phone, role_id: req.body.role_id }),
-      hash, (err, user) => {
+    User.register(
+      new User({
+        username: req.body.username,
+        password: hash,
+        email: req.body.email,
+        image: req.body.image,
+        gender: req.body.gender,
+        address: req.body.address,
+        fullName: req.body.fullName,
+        status: req.body.status,
+        phone: req.body.phone,
+        role_id: req.body.role_id,
+      }),
+      hash,
+      (err, user) => {
         // console.log("req",req);
         if (err) {
           res.statusCode = 500;
-          res.setHeader('Content-Type', 'application/json');
+          res.setHeader("Content-Type", "application/json");
           res.json({ err: err });
-        }
-        else {
+        } else {
           // passport.authenticate('local')(req, res, () => {
           res.statusCode = 200;
-          res.setHeader('Content-Type', 'application/json');
-          res.json({ success: true, status: 'Registration Successful!' });
+          res.setHeader("Content-Type", "application/json");
+          res.json({ success: true, status: "Registration Successful!" });
           // });
         }
-      });
+      }
+    );
   });
-})
+};
 
 // exports.postLoginUser = async (req, res, next) => {
 //   passport.authenticate('local', { session: false }, async (err, user, info) => {
@@ -81,20 +95,30 @@ exports.postLoginUser = async (req, res, next) => {
     const user = await User.findOne({ username });
 
     if (!user) {
-      return res.status(401).json({ success: false, message: 'Authentication failed. Invalid username or password.' });
+      return res.status(401).json({
+        success: false,
+        message: "Authentication failed. Invalid username or password.",
+      });
     }
 
     // Kiểm tra mật khẩu đã hash
     bcrypt.compare(password, user.password, (err, result) => {
       if (err || !result) {
-        return res.status(401).json({ success: false, message: 'Authentication failed. Invalid username or password.' });
+        return res.status(401).json({
+          success: false,
+          message: "Authentication failed. Invalid username or password.",
+        });
       }
       // Nếu mật khẩu hợp lệ, tạo mã token và trả về cho người dùng
       const token = authenticate.getToken({ _id: user._id });
-      res.status(200).json({ success: true, token: token, user: user, status: 'You are successfully logged in!' });
+      res.status(200).json({
+        success: true,
+        token: token,
+        user: user,
+        status: "You are successfully logged in!",
+      });
     });
   } catch (error) {
     return next(error);
   }
 };
-
