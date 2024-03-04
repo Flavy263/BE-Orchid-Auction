@@ -5,6 +5,7 @@ const authenticate = require("../authenticate");
 var config = require('../config');
 exports.getAllUser = (req, res, next) => {
   User.find({})
+  .populate("role_id" ,"title" )
     .then(
       (course) => {
         res.statusCode = 200;
