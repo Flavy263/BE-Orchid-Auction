@@ -3,7 +3,7 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-
+const session = require('express-session');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 const roleRouter = require("./routes/role");
@@ -12,7 +12,7 @@ var app = express();
 const mongoose = require("mongoose");
 
 
-const url = "mongodb://127.0.0.1:27017/Backend_SWD";
+const url = "mongodb://127.0.0.1:27017/MutantOrchidAuction";
 const connect = mongoose.connect(url);
 
 connect.then(
@@ -53,5 +53,16 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error');
 });
+
+var passport = require('passport');
+app.use(session({
+  // name: 'session-id',
+  secret: '12345-67890-09876-54321',
+  saveUninitialized: false,
+  resave: false,
+  // store: new FileStore()
+}));
+app.use(passport.session());
+app.use(passport.initialize());
 
 module.exports = app;

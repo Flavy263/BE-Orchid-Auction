@@ -18,7 +18,7 @@ const auctionBidSchema = new Schema(
       type: mongoose.Types.Currency,
       required: true,
     },
-    creat_time: {
+    create_time: {
       type: Date,
       required: true,
     },
