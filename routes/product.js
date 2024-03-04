@@ -16,11 +16,11 @@ const authenticateJWT = passport.authenticate("jwt", { session: false });
 // method get
 router.get("/", productController.getAllProduct);
 // method post
-router.post("/add-product", authenticateJWT, productController.postAddProduct);
+router.post("/", authenticateJWT, productController.postAddProduct);
 // method put update product
-router.put("/put-product/:productId", authenticateJWT, productController.putUpdateProduct);
+router.put("/:productId", authenticateJWT, productController.putUpdateProduct);
 // method delete product
-router.delete("/delete-product/:productId", authenticateJWT, productController.deleteProduct);
+router.delete("/:productId", authenticateJWT, productController.deleteProduct);
 
 
 
