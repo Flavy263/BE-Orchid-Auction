@@ -4,7 +4,11 @@ require("mongoose-currency").loadType(mongoose);
 
 const userSchema = new Schema(
   {
-    full_name: {
+    username: {
+      type: String,
+      required: true,
+    },
+    fullName: {
       type: String,
       required: true,
     },
@@ -33,15 +37,11 @@ const userSchema = new Schema(
       type: String,
       required: true,
     },
-    user_name: {
-      type: String,
-      required: true,
-    },
     password: {
       type: String,
       required: true,
     },
-    roe_id: {
+    role_id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Role",
         required: true,
