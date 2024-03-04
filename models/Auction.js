@@ -30,7 +30,7 @@ const auctionSchema = new Schema(
     },
     host_id: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Auction_Bid",
+      ref: "User",
       required: true,
     },
     product_id: {

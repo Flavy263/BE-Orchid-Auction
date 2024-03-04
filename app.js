@@ -11,11 +11,14 @@ const productRouter = require("./routes/product");
 const cors = require('cors');
 var app = express();
 const mongoose = require("mongoose");
+const http = require('http');
+const socketIo = require('socket.io');
 
-
+const server = http.createServer(app);
+const io = socketIo(server);
 const url = "mongodb://127.0.0.1:27017/MutantOrchidAuction";
 const connect = mongoose.connect(url);
-
+app.set('socketio', io);
 connect.then(
   (db) => {
     console.log("Connected correctly to server");
