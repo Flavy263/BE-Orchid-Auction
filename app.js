@@ -8,6 +8,7 @@ var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 const roleRouter = require("./routes/role");
 const productRouter = require("./routes/product");
+const walletRequestRouter = require("./routes/walletRequest");
 const cors = require('cors');
 var app = express();
 const mongoose = require("mongoose");
@@ -43,6 +44,7 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use("/roles", roleRouter);
 app.use("/products", productRouter);
+app.use("/wallet_requests", walletRequestRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
@@ -61,6 +63,7 @@ app.use(function (err, req, res, next) {
 });
 
 var passport = require('passport');
+const WalletRequest = require('./models/Wallet_Request');
 app.use(session({
   // name: 'session-id',
   secret: '12345-67890-09876-54321',
