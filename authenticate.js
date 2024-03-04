@@ -36,7 +36,22 @@ exports.jwtPassport = passport.use(
       }
   )
 );
-
+exports.verifyToken = function(req, res, next) {
+    const token = req.body.token || req.query.token || req.headers.authorization.split(' ')[1];
+  
+    if (!token) {
+      return res.status(403).json({ success: false, message: 'Token is required.' });
+    }
+  
+    jwt.verify(token, config.secretKey, function(err, decoded) {
+      if (err) {
+        return res.status(401).json({ success: false, message: 'Failed to authenticate token.' });
+      }
+  
+      req.decoded = decoded;
+      next();
+    });
+  };
 
 
 exports.verifyUser = passport.authenticate('jwt', { session: false });

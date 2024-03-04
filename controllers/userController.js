@@ -2,6 +2,7 @@ const User = require("../models/User");
 const passport = require("passport");
 const bcrypt = require("bcrypt");
 const authenticate = require("../authenticate");
+var config = require('../config');
 exports.getAllUser = (req, res, next) => {
   User.find({})
     .then(
@@ -92,7 +93,7 @@ exports.postLoginUser = async (req, res, next) => {
   try {
     const { username, password } = req.body;
 
-    const user = await User.findOne({ username });
+    const user = await User.findOne({ username }).populate('role_id');
 
     if (!user) {
       return res.status(401).json({
@@ -120,5 +121,33 @@ exports.postLoginUser = async (req, res, next) => {
     });
   } catch (error) {
     return next(error);
+  }
+};
+
+// exports.fetchMe = async (req, res, next) => {
+//   const userId = req.decoded._id;
+//   User.findById(userId)
+//     .then(user => {
+//       if (!user) {
+//         return res.status(404).json({ success: false, message: 'User not found.' });
+//       }
+//       res.status(200).json({ success: true, user: user });
+//     })
+//     .catch(err => {
+//       console.error('Error finding user:', err);
+//       res.status(500).json({ success: false, message: 'Internal server error.' });
+//     });
+// };
+exports.fetchMe = async (req, res, next) => {
+  const userId = req.decoded._id;
+  try {
+    const user = await User.findById(userId).populate('role_id');
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found.' });
+    }
+    res.status(200).json({ success: true, user: user });
+  } catch (err) {
+    console.error('Error finding user:', err);
+    res.status(500).json({ success: false, message: 'Internal server error.' });
   }
 };

@@ -8,7 +8,7 @@ var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 const roleRouter = require("./routes/role");
 const productRouter = require("./routes/product");
-
+const cors = require('cors');
 var app = express();
 const mongoose = require("mongoose");
 
@@ -24,7 +24,11 @@ connect.then(
     console.log(err);
   }
 );
+const corsOptions = {
+  origin: 'http://127.0.0.1:5173'
+};
 
+app.use(cors(corsOptions));
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
@@ -41,12 +45,12 @@ app.use("/roles", roleRouter);
 app.use("/products", productRouter);
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   next(createError(404));
 });
 
 // error handler
-app.use(function(err, req, res, next) {
+app.use(function (err, req, res, next) {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
