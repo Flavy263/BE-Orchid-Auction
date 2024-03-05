@@ -9,7 +9,7 @@ const productSchema = new Schema(
       required: true,
     },
     image: {
-      type: String,
+      type: Array,
       required: true,
     },
     video: {
@@ -22,7 +22,7 @@ const productSchema = new Schema(
     },
     status : {
       type: Boolean,
-      default: true,
+      default: false,
     },
     price: {
       type: mongoose.Types.Currency,

@@ -8,6 +8,10 @@ const auctionSchema = new Schema(
       type: mongoose.Types.Currency,
       required: true,
     },
+    auctionInfo :{
+      type: String,
+      required:true,
+    },
     start_time: {
       type: Date,
       required: true,
@@ -25,7 +29,7 @@ const auctionSchema = new Schema(
       required: true,
     },
     status: {
-      type: Boolean,
+      type: String,
       required: true,
     },
     host_id: {
