@@ -1,6 +1,6 @@
 const WalletHistorys = require("../models/Wallet_History");
 
-exports.getWallet = (req, res, next) => {
+exports.getWalletHistory = (req, res, next) => {
   WalletHistorys.find({})
   .populate("user_id")
     .then(
@@ -28,7 +28,7 @@ exports.createEmptyWallet = (req, res, next) => {
       .catch((err) => next(err));
   };
 
-exports.createWallet = (req, res, next) => {
+exports.createWalletHistory = (req, res, next) => {
   WalletHistorys.create(req.body)
     .then(
       (wallet) => {
@@ -42,7 +42,7 @@ exports.createWallet = (req, res, next) => {
     .catch((err) => next(err));
 };
 
-exports.getWalletByID = (req, res, next) => {
+exports.getWalletHistoryByID = (req, res, next) => {
   WalletHistorys.findById(req.params.roleId)
     .then(
       (role) => {
@@ -55,7 +55,7 @@ exports.getWalletByID = (req, res, next) => {
     .catch((err) => next(err));
 };
 
-exports.updateWalletByID = (req, res, next) => {
+exports.updateWalletHistoryByID = (req, res, next) => {
   WalletHistorys.findByIdAndUpdate(
     req.params.roleId,
     {
@@ -74,7 +74,7 @@ exports.updateWalletByID = (req, res, next) => {
     .catch((err) => next(err));
 };
 
-exports.deleteWalletByID = (req, res, next) => {
+exports.deleteWalletHistoryByID = (req, res, next) => {
   WalletHistorys.findByIdAndDelete(req.params.roleId)
     .then(
       (resp) => {
