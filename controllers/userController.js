@@ -2,7 +2,65 @@ const User = require("../models/User");
 const passport = require("passport");
 const bcrypt = require("bcrypt");
 const authenticate = require("../authenticate");
+
 var config = require('../config');
+
+const cloudinary = require('cloudinary').v2;
+const multer = require('multer');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+
+// Cấu hình cloudinary với biến môi trường từ config.js
+cloudinary.config({
+  cloud_name: config.CLOUDINARY_CLOUD_NAME,
+  api_key: config.CLOUDINARY_API_KEY,
+  api_secret: config.CLOUDINARY_API_SECRET,
+});
+
+// Cấu hình multer để lưu trữ tệp trên cloudinary
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'user-profile-images', // Thay đổi tên thư mục tùy ý
+    allowed_formats: ['jpg', 'jpeg', 'png'], // Định dạng tệp cho phép
+    format: async (req, file) => 'jpg', // Định dạng của tệp trên cloudinary
+  },
+});
+
+const upload = multer({ storage: storage });
+
+exports.uploadImage = upload.single('image'), async (req, res, next) => {
+  try {
+    // Kiểm tra xem có tệp tin được tải lên không
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file provided for upload.' });
+    }
+
+    // Tải lên tệp tin lên Cloudinary
+    const result = await cloudinary.uploader.upload(req.file.buffer, {
+      folder: 'user-profile-images', // Thay đổi tên thư mục tùy ý
+    });
+
+    // Lưu đường dẫn của ảnh vào trường image trong MongoDB
+    const user = await User.findById(req.params.userid );
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+
+    user.image = result.secure_url; // Lưu URL của ảnh trong user model
+    await user.save();
+
+    // Xóa tệp tin tạm thời sau khi đã tải lên thành công
+    // (tùy thuộc vào logic và yêu cầu của ứng dụng)
+    // fs.unlinkSync(req.file.path);
+
+    res.status(200).json({ success: true, url: result.secure_url });
+  } catch (error) {
+    console.error('Error uploading image:', error);
+    res.status(500).json({ error: 'Failed to upload image.' });
+  }
+};
+
 exports.getAllUser = (req, res, next) => {
   User.find({})
   .populate("role_id" ,"title" )
