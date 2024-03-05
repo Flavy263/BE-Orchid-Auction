@@ -9,22 +9,22 @@ const authenticateJWT = passport.authenticate("jwt", { session: false });
 router.get("/", authenticateJWT, auctionController.getAllAuction);
 router.post("/", authenticateJWT, auctionController.createAuction);
 router.get(
-  "/not-yet/:userID",
+  "/not-yet/:host_id",
   authenticateJWT,
   auctionController.getAuctionNotYetAuctionedByUser
 );
 router.get(
-  "/about-to/:userID",
+  "/about-to/:host_id",
   authenticateJWT,
   auctionController.getAuctionAboutToAuctionByUser
 );
 router.get(
-  "/auctioning/:userID",
+  "/auctioning/:host_id",
   authenticateJWT,
   auctionController.getAuctionAuctioningByUser
 );
 router.get(
-  "/autioned/:userID",
+  "/autioned/:host_id",
   authenticateJWT,
   auctionController.getAuctionaAuctionedByUser
 );
