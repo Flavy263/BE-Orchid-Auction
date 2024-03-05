@@ -43,8 +43,7 @@ exports.getAuctionByID = (req, res, next) => {
 };
 
 exports.getAuctionNotYetAuctionedByUser = (req, res, next) => {
-  const statusToMatch = "not yet auctioned";
-  Auctions.findOne({ host_id: req.params.userID, status: statusToMatch })
+  Auctions.find({ host_id: req.params.host_id, status: "not yet auctioned" })
     .then(
       (auction) => {
         res.statusCode = 200;
@@ -57,8 +56,7 @@ exports.getAuctionNotYetAuctionedByUser = (req, res, next) => {
 };
 
 exports.getAuctionAboutToAuctionByUser = (req, res, next) => {
-  const statusToMatch = "about to auction";
-  Auctions.findOne({ host_id: req.params.userID, status: statusToMatch })
+  Auctions.find({ host_id: req.params.host_id, status: "about to auction" })
     .then(
       (auction) => {
         res.statusCode = 200;
@@ -71,8 +69,7 @@ exports.getAuctionAboutToAuctionByUser = (req, res, next) => {
 };
 
 exports.getAuctionAuctioningByUser = (req, res, next) => {
-  const statusToMatch = "auctioning";
-  Auctions.findOne({ host_id: req.params.userID, status: statusToMatch })
+  Auctions.find({ host_id: req.params.host_id, status: "auctioning" })
     .then(
       (auction) => {
         res.statusCode = 200;
@@ -84,8 +81,7 @@ exports.getAuctionAuctioningByUser = (req, res, next) => {
     .catch((err) => next(err));
 };
 exports.getAuctionaAuctionedByUser = (req, res, next) => {
-  const statusToMatch = "auctioned";
-  Auctions.findOne({ host_id: req.params.userID, status: statusToMatch })
+  Auctions.find({ host_id: req.params.host_id, status: "auctioned" })
     .then(
       (auction) => {
         res.statusCode = 200;
