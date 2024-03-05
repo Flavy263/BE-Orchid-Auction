@@ -1,7 +1,7 @@
 const moment = require('moment');
 const schedule = require('node-schedule');
 const Auctions = require("../models/Auction");
-
+const socketIo = require('socket.io');
 // Đường dẫn đến model của phiên đấu giá
 // router.post('/newAuction', async (req, res) => {
 //   try {
@@ -21,10 +21,11 @@ const Auctions = require("../models/Auction");
 // });
 
 // Hàm này sẽ được gọi khi có một phiên đấu giá kết thúc
-async function updateAuctionStatus(auctionId, newStatus) {
+async function updateAuctionStatus(auctionId, newStatus, io) {
   try {
     const updatedAuction = await Auctions.findByIdAndUpdate(auctionId, { status: newStatus }, { new: true });
     console.log(`Updated status of auction ${auctionId} to ${newStatus}`);
+    io.emit('auction_status_changed', { auctionId, newStatus });
   } catch (error) {
     console.error(`Error updating auction status: ${error.message}`);
   }
