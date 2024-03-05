@@ -1,7 +1,7 @@
 const Auctions = require("../models/Auction");
 
 exports.getAllAuction = (req, res, next) => {
-    Auctions.find()
+  Auctions.find()
     .populate("host_id", "fullName")
     .populate("product_id", "name")
     .then(
@@ -16,7 +16,7 @@ exports.getAllAuction = (req, res, next) => {
 };
 
 exports.createAuction = (req, res, next) => {
-    Auctions.create(req.body)
+  Auctions.create(req.body)
     .then(
       (auction) => {
         console.log("Auction Created ", auction);
@@ -30,7 +30,62 @@ exports.createAuction = (req, res, next) => {
 };
 
 exports.getAuctionByID = (req, res, next) => {
-    Auctions.findById(req.params.auctionId)
+  Auctions.findById(req.params.auctionId)
+    .then(
+      (auction) => {
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "application/json");
+        res.json(auction);
+      },
+      (err) => next(err)
+    )
+    .catch((err) => next(err));
+};
+
+exports.getAuctionNotYetAuctionedByUser = (req, res, next) => {
+  const statusToMatch = "not yet auctioned";
+  Auctions.findOne({ host_id: req.params.userID, status: statusToMatch })
+    .then(
+      (auction) => {
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "application/json");
+        res.json(auction);
+      },
+      (err) => next(err)
+    )
+    .catch((err) => next(err));
+};
+
+exports.getAuctionAboutToAuctionByUser = (req, res, next) => {
+  const statusToMatch = "about to auction";
+  Auctions.findOne({ host_id: req.params.userID, status: statusToMatch })
+    .then(
+      (auction) => {
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "application/json");
+        res.json(auction);
+      },
+      (err) => next(err)
+    )
+    .catch((err) => next(err));
+};
+
+exports.getAuctionAuctioningByUser = (req, res, next) => {
+  const statusToMatch = "auctioning";
+  Auctions.findOne({ host_id: req.params.userID, status: statusToMatch })
+    .then(
+      (auction) => {
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "application/json");
+        res.json(auction);
+      },
+      (err) => next(err)
+    )
+    .catch((err) => next(err));
+};
+exports.getAuctionaAuctionedByUser = (req, res, next) => {
+  const statusToMatch = "auctioned";
+  Auctions.findOne({ host_id: req.params.userID, status: statusToMatch })
     .then(
       (auction) => {
         res.statusCode = 200;
@@ -43,7 +98,7 @@ exports.getAuctionByID = (req, res, next) => {
 };
 
 exports.updateAuctionByID = (req, res, next) => {
-    Auctions.findByIdAndUpdate(
+  Auctions.findByIdAndUpdate(
     req.params.auctionId,
     {
       $set: req.body,
@@ -62,7 +117,7 @@ exports.updateAuctionByID = (req, res, next) => {
 };
 
 exports.deleteAuctionByID = (req, res, next) => {
-    Auctions.findByIdAndDelete(req.params.auctionId)
+  Auctions.findByIdAndDelete(req.params.auctionId)
     .then(
       (resp) => {
         res.statusCode = 200;
@@ -73,4 +128,3 @@ exports.deleteAuctionByID = (req, res, next) => {
     )
     .catch((err) => next(err));
 };
-
