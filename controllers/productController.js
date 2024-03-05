@@ -2,7 +2,7 @@
 const Product = require("../models/Product");
 
 exports.getAllProduct = (req, res, next) => {
-  Product.find({ status: true })
+  Product.find({})
     .then((products) => {
       if (!products || products.length === 0) {
         // Nếu không có sản phẩm nào thỏa mãn điều kiện, trả về thông báo hoặc mã lỗi
