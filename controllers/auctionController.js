@@ -1,5 +1,59 @@
+const moment = require('moment');
+const schedule = require('node-schedule');
 const Auctions = require("../models/Auction");
 
+// Đường dẫn đến model của phiên đấu giá
+// router.post('/newAuction', async (req, res) => {
+//   try {
+//     // Tạo một phiên đấu giá mới từ dữ liệu được gửi từ client
+//     const newAuction = new Auction(req.body);
+
+//     // Lưu phiên đấu giá mới
+//     const auction = await newAuction.save();
+
+//     // Schedule để cập nhật trạng thái của phiên đấu giá mới, pass `schedule` vào
+//     scheduleAuctionStatusUpdates(schedule, auction);
+
+//     res.status(201).json({ message: 'Auction created successfully', auction });
+//   } catch (error) {
+//     res.status(500).json({ message: `Error creating auction: ${error.message}` });
+//   }
+// });
+
+// Hàm này sẽ được gọi khi có một phiên đấu giá kết thúc
+async function updateAuctionStatus(auctionId, newStatus) {
+  try {
+    const updatedAuction = await Auctions.findByIdAndUpdate(auctionId, { status: newStatus }, { new: true });
+    console.log(`Updated status of auction ${auctionId} to ${newStatus}`);
+  } catch (error) {
+    console.error(`Error updating auction status: ${error.message}`);
+  }
+}
+
+// Schedule để cập nhật trạng thái phiên đấu giá
+function scheduleAuctionStatusUpdates(auction) {
+  const { _id, start_time, end_time, regitration_start_time, regitration_end_time } = auction;
+  const startTime = moment(start_time).format("YYYY-MM-DD HH:mm:ss");
+  const endTime = moment(end_time).format("YYYY-MM-DD HH:mm:ss");
+  const regitrationStartTime = moment(regitration_start_time).format("YYYY-MM-DD HH:mm:ss");
+  const regitrationEndTime = moment(regitration_end_time).format("YYYY-MM-DD HH:mm:ss");
+  // Kiểm tra và cập nhật trạng thái khi qua mốc thời gian
+  schedule.scheduleJob(startTime, async () => {
+    await updateAuctionStatus(_id, 'not yet auctioned');
+  });
+
+  schedule.scheduleJob(endTime, async () => {
+    await updateAuctionStatus(_id, 'about to auction');
+  });
+
+  schedule.scheduleJob(regitrationStartTime, async () => {
+    await updateAuctionStatus(_id, 'auctioning');
+  });
+
+  schedule.scheduleJob(regitrationEndTime, async () => {
+    await updateAuctionStatus(_id, 'auctioned');
+  });
+}
 exports.getAllAuction = (req, res, next) => {
   Auctions.find()
     .populate("host_id", "fullName")
@@ -18,8 +72,12 @@ exports.getAllAuction = (req, res, next) => {
 exports.createAuction = (req, res, next) => {
   Auctions.create(req.body)
     .then(
-      (auction) => {
+      async (auction) => {
         console.log("Auction Created ", auction);
+
+        // Sau khi phiên đấu giá được tạo, gọi hàm để lên lịch cập nhật trạng thái
+        await scheduleAuctionStatusUpdates(auction);
+
         res.statusCode = 200;
         res.setHeader("Content-Type", "application/json");
         res.json(auction);
@@ -28,6 +86,7 @@ exports.createAuction = (req, res, next) => {
     )
     .catch((err) => next(err));
 };
+
 
 exports.getAuctionByID = (req, res, next) => {
   Auctions.findById(req.params.auctionId)
