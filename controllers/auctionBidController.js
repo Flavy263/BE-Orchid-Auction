@@ -19,7 +19,7 @@ exports.handleNewBid = async (req, res) => {
     // const registrationEndTime = moment(auction.regitration_end_time);
 
     const currentTime = moment().format('YYYY-MM-DDTHH:mm:ss.SSSZ'); // Lấy thời gian hiện tại với định dạng ngày và giờ
-
+  
     // Tạo đối tượng thời gian từ chuỗi `auction.registration_end_time` với định dạng mong muốn
     const registrationEndTime = moment(auction.registration_end_time, 'YYYY-MM-DDTHH:mm:ss.SSSZ');
     
