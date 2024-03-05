@@ -23,4 +23,9 @@ router.post("/register", userController.postAddUser);
 
 router.post("/login", userController.postLoginUser);
 
+router.get("/userid/:userid", userController.getUserById);
+
+router.get("/username/:userName", userController.getUserByUsername);
+
+router.get("/role/:roleId", userController.getUserByRole);
 module.exports = router;

@@ -16,6 +16,75 @@ exports.getAllUser = (req, res, next) => {
     )
     .catch((err) => next(err));
 };
+
+exports.getUserById = (req, res, next) => {
+  const userId = req.params.userid;
+  User.findById(userId)
+    .then(
+      (user) => {
+        if (user) {
+          res.statusCode = 200;
+          res.setHeader("Content-Type", "application/json");
+          res.json(user);
+        } else {
+          res.statusCode = 404;
+          res.end("User not found");
+        }
+      },
+      (err) => next(err)
+    )
+    .catch((err) => next(err));
+};
+
+exports.getUserByUsername = (req, res, next) => {
+  const userName = req.params.userName;
+  User.findById({username:userName})
+    .then(
+      (user) => {
+        if (user) {
+          res.statusCode = 200;
+          res.setHeader("Content-Type", "application/json");
+          res.json(user);
+        } else {
+          res.statusCode = 404;
+          res.end("User not found");
+        }
+      },
+      (err) => next(err)
+    )
+    .catch((err) => next(err));
+};
+
+
+exports.getUserByRole = async (req, res, next) => {
+  try {
+    const roleDescription = req.params.roleDescription;
+
+    // Tìm Role dựa trên mô tả
+    const role = await Role.findOne({
+      where: { description: roleDescription },
+    });
+
+    if (!role) {
+      res.status(404).json({ error: 'No role found with the specified description' });
+      return;
+    }
+
+    // Tìm tất cả người dùng với role_id tương ứng
+    const users = await User.findAll({
+      where: { role_id: role.id },
+    });
+
+    if (users && users.length > 0) {
+      res.status(200).json(users);
+    } else {
+      res.status(404).json({ error: 'No users found with the specified role' });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
 exports.postAddUser = (req, res, next) => {
   bcrypt.hash(req.body.password, 10, (err, hash) => {
     if (err) {
