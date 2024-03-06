@@ -5,4 +5,6 @@ const auctionBidController = require("../controllers/auctionBidController");
 const router = express.Router();
 
 // Define endpoint to handle new bid
-router.post('/auction/:auctionId/new-bid', auctionController.handleNewBid);
+router.post('/auctionBid/:auctionId/:customerId/new-bid', auctionBidController.handleNewBid);
+
+router.get('/auctionBid/:auctionId',auctionBidController.handleFindMaxPrice)
