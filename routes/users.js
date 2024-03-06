@@ -14,7 +14,7 @@ const authenticateJWT = passport.authenticate("jwt", { session: false });
 //     next();
 //   }
 // });
-router.post("/uploadImage/:userid", authenticateJWT, userController.uploadImage);
+router.post("/uploadImage/", userController.uploadImage);
 
 router.get("/", authenticateJWT, userController.getAllUser);
 

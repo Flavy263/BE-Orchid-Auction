@@ -20,9 +20,9 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
-    folder: 'user-profile-images', // Thay đổi tên thư mục tùy ý
-    allowed_formats: ['jpg', 'jpeg', 'png'], // Định dạng tệp cho phép
-    format: async (req, file) => 'jpg', // Định dạng của tệp trên cloudinary
+    folder: config.CLOUDINARY_FOLDER_USER_IMAGE, // Folder save img in Cloudinary
+    allowed_formats: ['jpg', 'jpeg', 'png'], // Format for img
+    format: async (req, file) => 'jpg', // Format in cloudinary
   },
 });
 
@@ -31,39 +31,38 @@ const upload = multer({ storage: storage });
 exports.uploadImage = upload.single('image'), async (req, res, next) => {
   try {
     // Kiểm tra xem có tệp tin được tải lên không
-    if (!req.file) {
+    if (req.file==null) {
       return res.status(400).json({ error: 'No file provided for upload.' });
     }
-
+    console.log("Start Upload img");
     // Tải lên tệp tin lên Cloudinary
     const result = await cloudinary.uploader.upload(req.file.buffer, {
-      folder: 'user-profile-images', // Thay đổi tên thư mục tùy ý
+      folder: config.CLOUDINARY_FOLDER_USER_IMAGE, // Sử dụng biến cấu hình
     });
+    console.log(result);
+    // const userID = req.params.userid;
+    // // Lưu đường dẫn của ảnh vào trường image trong MongoDB
+    // const user = await User.findById(userID);
 
-    // Lưu đường dẫn của ảnh vào trường image trong MongoDB
-    const user = await User.findById(req.params.userid );
+    // if (!user) {
+    //   return res.status(404).json({ error: 'User not found.' });
+    // }
 
-    if (!user) {
-      return res.status(404).json({ error: 'User not found.' });
-    }
+    // user.image = result.secure_url; // Lưu URL của ảnh trong user model
+    // await user.save();
 
-    user.image = result.secure_url; // Lưu URL của ảnh trong user model
-    await user.save();
-
-    // Xóa tệp tin tạm thời sau khi đã tải lên thành công
-    // (tùy thuộc vào logic và yêu cầu của ứng dụng)
-    // fs.unlinkSync(req.file.path);
-
+    // // Trả về thông báo thành công
     res.status(200).json({ success: true, url: result.secure_url });
   } catch (error) {
-    console.error('Error uploading image:', error);
+    console.log('Error uploading image:', error);
     res.status(500).json({ error: 'Failed to upload image.' });
   }
 };
 
+
 exports.getAllUser = (req, res, next) => {
   User.find({})
-  .populate("role_id" ,"title" )
+    .populate("role_id", "title")
     .then(
       (course) => {
         res.statusCode = 200;
@@ -96,7 +95,7 @@ exports.getUserById = (req, res, next) => {
 
 exports.getUserByUsername = (req, res, next) => {
   const userName = req.params.userName;
-  User.findById({username:userName})
+  User.findById({ username: userName })
     .then(
       (user) => {
         if (user) {
