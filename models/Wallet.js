@@ -2,22 +2,17 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 require("mongoose-currency").loadType(mongoose);
 
-const walletSchema = new Schema(
-  {    
-    user_id: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-        required: true,
-    },
-    ballance: {
-      type: mongoose.Types.Currency,
-      required: true,      
-    },
+const walletSchema = new Schema({
+  user_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
   },
-  {
-    timestamps: true,
-  }
-);
+  balance: {
+    type: Number,
+    default: 0,
+  },
+});
 
 var Wallet = mongoose.model("Wallet", walletSchema);
 
