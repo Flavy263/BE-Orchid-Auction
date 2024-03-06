@@ -5,16 +5,8 @@ const socketIo = require('socket.io');
 // Đường dẫn đến model của phiên đấu giá
 // router.post('/newAuction', async (req, res) => {
 //   try {
-//     // Tạo một phiên đấu giá mới từ dữ liệu được gửi từ client
-//     const newAuction = new Auction(req.body);
-
-//     // Lưu phiên đấu giá mới
-//     const auction = await newAuction.save();
-
-//     // Schedule để cập nhật trạng thái của phiên đấu giá mới, pass `schedule` vào
-//     scheduleAuctionStatusUpdates(schedule, auction);
-
-//     res.status(201).json({ message: 'Auction created successfully', auction });
+//     const updatedAuction = await Auctions.findByIdAndUpdate(auctionId, { status: newStatus }, { new: true });
+//     console.log(`Updated status of auction ${auctionId} to ${newStatus}`);
 //   } catch (error) {
 //     res.status(500).json({ message: `Error creating auction: ${error.message}` });
 //   }
@@ -109,120 +101,120 @@ exports.getAllAuction = (req, res, next) => {
     .catch((err) => next(err));
 };
 
-exports.createAuction = (req, res, next) => {
-  Auctions.create(req.body)
-    .then(
-      async (auction) => {
-        console.log("Auction Created ", auction);
+// exports.createAuction = (req, res, next) => {
+//   Auctions.create(req.body)
+//     .then(
+//       async (auction) => {
+//         console.log("Auction Created ", auction);
 
         // Sau khi phiên đấu giá được tạo, gọi hàm để lên lịch cập nhật trạng thái
         await scheduleAuctionStatusUpdates(auction, req.app.get('socketio'));
 
-        res.statusCode = 200;
-        res.setHeader("Content-Type", "application/json");
-        res.json(auction);
-      },
-      (err) => next(err)
-    )
-    .catch((err) => next(err));
-};
+//         res.statusCode = 200;
+//         res.setHeader("Content-Type", "application/json");
+//         res.json(auction);
+//       },
+//       (err) => next(err)
+//     )
+//     .catch((err) => next(err));
+// };
 
 
-exports.getAuctionByID = (req, res, next) => {
-  Auctions.findById(req.params.auctionId)
-    .then(
-      (auction) => {
-        res.statusCode = 200;
-        res.setHeader("Content-Type", "application/json");
-        res.json(auction);
-      },
-      (err) => next(err)
-    )
-    .catch((err) => next(err));
-};
+// exports.getAuctionByID = (req, res, next) => {
+//   Auctions.findById(req.params.auctionId)
+//     .then(
+//       (auction) => {
+//         res.statusCode = 200;
+//         res.setHeader("Content-Type", "application/json");
+//         res.json(auction);
+//       },
+//       (err) => next(err)
+//     )
+//     .catch((err) => next(err));
+// };
 
-exports.getAuctionNotYetAuctionedByUser = (req, res, next) => {
-  Auctions.find({ host_id: req.params.host_id, status: "not yet auctioned" })
-    .then(
-      (auction) => {
-        res.statusCode = 200;
-        res.setHeader("Content-Type", "application/json");
-        res.json(auction);
-      },
-      (err) => next(err)
-    )
-    .catch((err) => next(err));
-};
+// exports.getAuctionNotYetAuctionedByUser = (req, res, next) => {
+//   Auctions.find({ host_id: req.params.host_id, status: "not yet auctioned" })
+//     .then(
+//       (auction) => {
+//         res.statusCode = 200;
+//         res.setHeader("Content-Type", "application/json");
+//         res.json(auction);
+//       },
+//       (err) => next(err)
+//     )
+//     .catch((err) => next(err));
+// };
 
-exports.getAuctionAboutToAuctionByUser = (req, res, next) => {
-  Auctions.find({ host_id: req.params.host_id, status: "about to auction" })
-    .then(
-      (auction) => {
-        res.statusCode = 200;
-        res.setHeader("Content-Type", "application/json");
-        res.json(auction);
-      },
-      (err) => next(err)
-    )
-    .catch((err) => next(err));
-};
+// exports.getAuctionAboutToAuctionByUser = (req, res, next) => {
+//   Auctions.find({ host_id: req.params.host_id, status: "about to auction" })
+//     .then(
+//       (auction) => {
+//         res.statusCode = 200;
+//         res.setHeader("Content-Type", "application/json");
+//         res.json(auction);
+//       },
+//       (err) => next(err)
+//     )
+//     .catch((err) => next(err));
+// };
 
-exports.getAuctionAuctioningByUser = (req, res, next) => {
-  Auctions.find({ host_id: req.params.host_id, status: "auctioning" })
-    .then(
-      (auction) => {
-        res.statusCode = 200;
-        res.setHeader("Content-Type", "application/json");
-        res.json(auction);
-      },
-      (err) => next(err)
-    )
-    .catch((err) => next(err));
-};
-exports.getAuctionaAuctionedByUser = (req, res, next) => {
-  Auctions.find({ host_id: req.params.host_id, status: "auctioned" })
-    .then(
-      (auction) => {
-        res.statusCode = 200;
-        res.setHeader("Content-Type", "application/json");
-        res.json(auction);
-      },
-      (err) => next(err)
-    )
-    .catch((err) => next(err));
-};
+// exports.getAuctionAuctioningByUser = (req, res, next) => {
+//   Auctions.find({ host_id: req.params.host_id, status: "auctioning" })
+//     .then(
+//       (auction) => {
+//         res.statusCode = 200;
+//         res.setHeader("Content-Type", "application/json");
+//         res.json(auction);
+//       },
+//       (err) => next(err)
+//     )
+//     .catch((err) => next(err));
+// };
+// exports.getAuctionaAuctionedByUser = (req, res, next) => {
+//   Auctions.find({ host_id: req.params.host_id, status: "auctioned" })
+//     .then(
+//       (auction) => {
+//         res.statusCode = 200;
+//         res.setHeader("Content-Type", "application/json");
+//         res.json(auction);
+//       },
+//       (err) => next(err)
+//     )
+//     .catch((err) => next(err));
+// };
 
-exports.updateAuctionByID = (req, res, next) => {
-  Auctions.findByIdAndUpdate(
-    req.params.auctionId,
-    {
-      $set: req.body,
-    },
-    { new: true }
-  )
-    .then(
-      (auction) => {
-        res.statusCode = 200;
-        res.setHeader("Content-Type", "application/json");
-        res.json(auction);
-      },
-      (err) => next(err)
-    )
-    .catch((err) => next(err));
-};
+// exports.updateAuctionByID = (req, res, next) => {
+//   Auctions.findByIdAndUpdate(
+//     req.params.auctionId,
+//     {
+//       $set: req.body,
+//     },
+//     { new: true }
+//   )
+//     .then(
+//       (auction) => {
+//         res.statusCode = 200;
+//         res.setHeader("Content-Type", "application/json");
+//         res.json(auction);
+//       },
+//       (err) => next(err)
+//     )
+//     .catch((err) => next(err));
+// };
 
-exports.deleteAuctionByID = (req, res, next) => {
-  Auctions.findByIdAndDelete(req.params.auctionId)
-    .then(
-      (resp) => {
-        res.statusCode = 200;
-        res.setHeader("Content-Type", "application/json");
-        res.json(resp);
-      },
-      (err) => next(err)
-    )
-    .catch((err) => next(err));
-};
+// exports.deleteAuctionByID = (req, res, next) => {
+//   Auctions.findByIdAndDelete(req.params.auctionId)
+//     .then(
+//       (resp) => {
+//         res.statusCode = 200;
+//         res.setHeader("Content-Type", "application/json");
+//         res.json(resp);
+//       },
+//       (err) => next(err)
+//     )
+//     .catch((err) => next(err));
+// };
 
 
 // 

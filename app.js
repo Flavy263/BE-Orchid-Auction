@@ -8,7 +8,7 @@ var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 const roleRouter = require("./routes/role");
 const productRouter = require("./routes/product");
-const auctionRouter = require("./routes/auction");
+// const auctionRouter = require("./routes/auction");
 const walletRouter = require("./routes/wallet");
 const walletHistoryRouter = require("./routes/walletHistory");
 const walletRequestRouter = require("./routes/walletRequest");
@@ -71,7 +71,7 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use("/roles", roleRouter);
 app.use("/products", productRouter);
-app.use("/auctions", auctionRouter);
+// app.use("/auctions", auctionRouter);
 app.use("/wallets", walletRouter);
 app.use("/walletsHistory", walletHistoryRouter);
 app.use("/walletRequest", walletRequestRouter)
