@@ -1,27 +1,29 @@
 const moment = require("moment");
 const schedule = require("node-schedule");
 const Auctions = require("../models/Auction");
-
+const socketIo = require("socket.io");
 // Đường dẫn đến model của phiên đấu giá
 // router.post('/newAuction', async (req, res) => {
 //   try {
-//     // Tạo một phiên đấu giá mới từ dữ liệu được gửi từ client
-//     const newAuction = new Auction(req.body);
-
-//     // Lưu phiên đấu giá mới
-//     const auction = await newAuction.save();
-
-//     // Schedule để cập nhật trạng thái của phiên đấu giá mới, pass `schedule` vào
-//     scheduleAuctionStatusUpdates(schedule, auction);
-
-//     res.status(201).json({ message: 'Auction created successfully', auction });
+//     const updatedAuction = await Auctions.findByIdAndUpdate(auctionId, { status: newStatus }, { new: true });
+//     console.log(`Updated status of auction ${auctionId} to ${newStatus}`);
 //   } catch (error) {
 //     res.status(500).json({ message: `Error creating auction: ${error.message}` });
 //   }
 // });
 
 // Hàm này sẽ được gọi khi có một phiên đấu giá kết thúc
-async function updateAuctionStatus(auctionId, newStatus) {
+// async function updateAuctionStatus(auctionId, newStatus, io) {
+//   try {
+//     const updatedAuction = await Auctions.findByIdAndUpdate(auctionId, { status: newStatus }, { new: true });
+//     console.log(`Updated status of auction ${auctionId} to ${newStatus}`);
+//     io.emit('auction_status_changed', { auctionId, newStatus });
+//   } catch (error) {
+//     console.error(`Error updating auction status: ${error.message}`);
+//   }
+// }
+// const io = require('../app').get('socketio');
+async function updateAuctionStatus(auctionId, newStatus, io) {
   try {
     const updatedAuction = await Auctions.findByIdAndUpdate(
       auctionId,
@@ -29,13 +31,43 @@ async function updateAuctionStatus(auctionId, newStatus) {
       { new: true }
     );
     console.log(`Updated status of auction ${auctionId} to ${newStatus}`);
+    if (io) {
+      io.emit("auction_status_changed", { auctionId, newStatus });
+    } else {
+      console.error("Socket connection is undefined");
+    }
   } catch (error) {
     console.error(`Error updating auction status: ${error.message}`);
   }
 }
 
 // Schedule để cập nhật trạng thái phiên đấu giá
-function scheduleAuctionStatusUpdates(auction) {
+// function scheduleAuctionStatusUpdates(auction, io) {
+//   const { _id, start_time, end_time, registration_start_time, registration_end_time } = auction;
+//   const startTime = moment(start_time).format("YYYY-MM-DD HH:mm:ss");
+//   const endTime = moment(end_time).format("YYYY-MM-DD HH:mm:ss");
+//   const registrationStartTime = moment(registration_start_time).format("YYYY-MM-DD HH:mm:ss");
+//   const registrationEndTime = moment(registration_end_time).format("YYYY-MM-DD HH:mm:ss");
+//   // Kiểm tra và cập nhật trạng thái khi qua mốc thời gian
+//   schedule.scheduleJob(startTime, async () => {
+//     await updateAuctionStatus(_id, 'not yet auctioned', io);
+//   });
+
+//   schedule.scheduleJob(endTime, async () => {
+//     await updateAuctionStatus(_id, 'about to auction', io);
+//   });
+
+//   schedule.scheduleJob(registrationStartTime, async () => {
+//     await updateAuctionStatus(_id, 'auctioning', io);
+//   });
+
+//   schedule.scheduleJob(registrationEndTime, async () => {
+//     await updateAuctionStatus(_id, 'auctioned', io);
+//   });
+// }
+
+// Schedule để cập nhật trạng thái phiên đấu giá
+function scheduleAuctionStatusUpdates(auction, io) {
   const {
     _id,
     start_time,
@@ -53,19 +85,19 @@ function scheduleAuctionStatusUpdates(auction) {
   );
   // Kiểm tra và cập nhật trạng thái khi qua mốc thời gian
   schedule.scheduleJob(startTime, async () => {
-    await updateAuctionStatus(_id, "not yet auctioned");
+    await updateAuctionStatus(_id, "not yet auctioned", io);
   });
 
   schedule.scheduleJob(endTime, async () => {
-    await updateAuctionStatus(_id, "about to auction");
+    await updateAuctionStatus(_id, "about to auction", io);
   });
 
   schedule.scheduleJob(regitrationStartTime, async () => {
-    await updateAuctionStatus(_id, "auctioning");
+    await updateAuctionStatus(_id, "auctioning", io);
   });
 
   schedule.scheduleJob(regitrationEndTime, async () => {
-    await updateAuctionStatus(_id, "auctioned");
+    await updateAuctionStatus(_id, "auctioned", io);
   });
 }
 exports.getAllAuction = (req, res, next) => {
@@ -90,7 +122,7 @@ exports.createAuction = (req, res, next) => {
         console.log("Auction Created ", auction);
 
         // Sau khi phiên đấu giá được tạo, gọi hàm để lên lịch cập nhật trạng thái
-        await scheduleAuctionStatusUpdates(auction);
+        await scheduleAuctionStatusUpdates(auction, req.app.get("socketio"));
 
         res.statusCode = 200;
         res.setHeader("Content-Type", "application/json");
