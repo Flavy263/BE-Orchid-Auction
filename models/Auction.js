@@ -8,9 +8,13 @@ const auctionSchema = new Schema(
       type: mongoose.Types.Currency,
       required: true,
     },
-    auctionInfo :{
+    price: {
+      type: mongoose.Types.Currency,
+      required: true,
+    },
+    auctionInfo: {
       type: String,
-      required:true,
+      required: true,
     },
     start_time: {
       type: Date,

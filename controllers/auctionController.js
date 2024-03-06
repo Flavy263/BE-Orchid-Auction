@@ -1,5 +1,5 @@
-const moment = require('moment');
-const schedule = require('node-schedule');
+const moment = require("moment");
+const schedule = require("node-schedule");
 const Auctions = require("../models/Auction");
 
 // Đường dẫn đến model của phiên đấu giá
@@ -23,7 +23,11 @@ const Auctions = require("../models/Auction");
 // Hàm này sẽ được gọi khi có một phiên đấu giá kết thúc
 async function updateAuctionStatus(auctionId, newStatus) {
   try {
-    const updatedAuction = await Auctions.findByIdAndUpdate(auctionId, { status: newStatus }, { new: true });
+    const updatedAuction = await Auctions.findByIdAndUpdate(
+      auctionId,
+      { status: newStatus },
+      { new: true }
+    );
     console.log(`Updated status of auction ${auctionId} to ${newStatus}`);
   } catch (error) {
     console.error(`Error updating auction status: ${error.message}`);
@@ -32,26 +36,36 @@ async function updateAuctionStatus(auctionId, newStatus) {
 
 // Schedule để cập nhật trạng thái phiên đấu giá
 function scheduleAuctionStatusUpdates(auction) {
-  const { _id, start_time, end_time, regitration_start_time, regitration_end_time } = auction;
+  const {
+    _id,
+    start_time,
+    end_time,
+    regitration_start_time,
+    regitration_end_time,
+  } = auction;
   const startTime = moment(start_time).format("YYYY-MM-DD HH:mm:ss");
   const endTime = moment(end_time).format("YYYY-MM-DD HH:mm:ss");
-  const regitrationStartTime = moment(regitration_start_time).format("YYYY-MM-DD HH:mm:ss");
-  const regitrationEndTime = moment(regitration_end_time).format("YYYY-MM-DD HH:mm:ss");
+  const regitrationStartTime = moment(regitration_start_time).format(
+    "YYYY-MM-DD HH:mm:ss"
+  );
+  const regitrationEndTime = moment(regitration_end_time).format(
+    "YYYY-MM-DD HH:mm:ss"
+  );
   // Kiểm tra và cập nhật trạng thái khi qua mốc thời gian
   schedule.scheduleJob(startTime, async () => {
-    await updateAuctionStatus(_id, 'not yet auctioned');
+    await updateAuctionStatus(_id, "not yet auctioned");
   });
 
   schedule.scheduleJob(endTime, async () => {
-    await updateAuctionStatus(_id, 'about to auction');
+    await updateAuctionStatus(_id, "about to auction");
   });
 
   schedule.scheduleJob(regitrationStartTime, async () => {
-    await updateAuctionStatus(_id, 'auctioning');
+    await updateAuctionStatus(_id, "auctioning");
   });
 
   schedule.scheduleJob(regitrationEndTime, async () => {
-    await updateAuctionStatus(_id, 'auctioned');
+    await updateAuctionStatus(_id, "auctioned");
   });
 }
 exports.getAllAuction = (req, res, next) => {
@@ -86,7 +100,6 @@ exports.createAuction = (req, res, next) => {
     )
     .catch((err) => next(err));
 };
-
 
 exports.getAuctionByID = (req, res, next) => {
   Auctions.findById(req.params.auctionId)
