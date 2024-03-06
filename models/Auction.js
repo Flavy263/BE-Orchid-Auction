@@ -5,12 +5,16 @@ require("mongoose-currency").loadType(mongoose);
 const auctionSchema = new Schema(
   {
     minimum_price_step: {
-      type: mongoose.Types.Currency,
+      type: Number,
       required: true,
     },
-    auctionInfo :{
+    starting_price: {
+      type: Number,
+      required: true,
+    },
+    auctionInfo: {
       type: String,
-      required:true,
+      required: true,
     },
     start_time: {
       type: Date,
