@@ -1,50 +1,92 @@
 // controllers/auctionController.js
 
-const Auction = require('../models/auctionModel');
-const AuctionBid = require('../models/auctionBidModel');
+const Auction = require('../models/Auction');
+const AuctionBid = require('../models/Auction_Bid');
 const moment = require('moment');
+const User = require('../models/User');
+const Wallet = require('../models/Wallet')
+
+exports.handleCheckPrice = async (priceStep, customerPrice, auctionPrice, customerWallet) => {
+  try {
+    if (customerPrice <= auctionPrice || customerPrice % priceStep != 0 || customerWallet < auctionPrice) {
+      return false;
+    }
+    return true;
+  } catch (error) {
+
+  }
+}
 
 // Handle new bid
 exports.handleNewBid = async (req, res) => {
   try {
-    const { auctionId } = req.params; // Lấy auctionId từ params
+    const { auctionId, customerId } = req.params; // Lấy auctionId và customerId từ params
+    const { price } = req.body; // Lấy price từ req.body
 
     const auction = await Auction.findById(auctionId);
+    const customer = await User.findById(customerId);
+    const auctionBid = await AuctionBid.findById(auctionId);
+    const customerWallet = await Wallet.find({ user_id: customerId })
     if (!auction) {
       throw new Error('Auction not found');
     }
 
     // Check if the current time is within the registration period
-    // const currentTime = moment();
-    // const registrationEndTime = moment(auction.regitration_end_time);
+    const currentTime = moment();
+    const registrationEndTime = moment(auction.registration_end_time);
 
-    const currentTime = moment().format('YYYY-MM-DDTHH:mm:ss.SSSZ'); // Lấy thời gian hiện tại với định dạng ngày và giờ
-  
-    // Tạo đối tượng thời gian từ chuỗi `auction.registration_end_time` với định dạng mong muốn
-    const registrationEndTime = moment(auction.registration_end_time, 'YYYY-MM-DDTHH:mm:ss.SSSZ');
-    
     if (currentTime.isAfter(registrationEndTime)) {
       throw new Error('Bidding registration period has ended');
     }
 
-    const { customer_id, price } = req.body; // Lấy customer_id và price từ req.body
+    // kiểm tra xem số tiền có phải bội của bước giá hay không
+    if (!this.handleCheckPrice(auction.price_step, price, auctionBid.price, customerWallet.balance)) {
+      throw new Error('Price is not a multiple of the price step');
+    }
 
-    // Save the new bid
     const newBid = new AuctionBid({
-      auction_id: auctionId, // Sử dụng auctionId lấy từ params
-      customer_id,
+      auction_id: auctionId,
+      customer_id: customerId,
       price,
       create_time: new Date(),
     });
-    await newBid.save();
 
-    // Emit an event to notify clients about the new bid
+    await newBid.save();
     req.app.get('socketio').emit('bidAccepted', newBid);
     res.status(200).json({ success: true, message: 'Bid accepted successfully' });
+
   } catch (error) {
-    // Emit an event to notify clients about the error
     req.app.get('socketio').emit('bidRejected', { error: error.message });
     res.status(400).json({ success: false, error: error.message });
+  }
+};
+
+const AuctionBid = require('./auctionBidModel'); // Import model
+
+exports.handleFindMaxPrice = async (req, res, next) => {
+  try {
+    const auctionId = req.params.auctionId; // Lấy auctionId từ request parameters
+    const maxPriceAuctionBids = await AuctionBid.aggregate([
+      {
+        $match: { auction_id: mongoose.Types.ObjectId(auctionId) } // Lọc dữ liệu cho auction_id cụ thể
+      },
+      {
+        $sort: { price: -1, create_time: -1 } // Sắp xếp giảm dần theo price và create_time
+      },
+      {
+        $group: {
+          _id: "$auction_id",
+          maxPriceAuctionBid: { $first: "$$ROOT" } // Lấy bản ghi đầu tiên sau khi sắp xếp
+        }
+      },
+      {
+        $replaceRoot: { newRoot: "$maxPriceAuctionBid" } // Chọn lại định dạng root cho kết quả
+      }
+    ]);
+    res.status(200).json(maxPriceAuctionBids); // Trả về kết quả
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' }); // Trả về lỗi nếu có
   }
 };
 

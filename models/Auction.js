@@ -4,7 +4,7 @@ require("mongoose-currency").loadType(mongoose);
 
 const auctionSchema = new Schema(
   {
-    minimum_price_step: {
+    price_step: {
       type: Number,
       required: true,
     },
