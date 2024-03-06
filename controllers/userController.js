@@ -3,62 +3,23 @@ const passport = require("passport");
 const bcrypt = require("bcrypt");
 const authenticate = require("../authenticate");
 
-var config = require('../config');
-
-const cloudinary = require('cloudinary').v2;
-const multer = require('multer');
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
-
-// Cấu hình cloudinary với biến môi trường từ config.js
-cloudinary.config({
-  cloud_name: config.CLOUDINARY_CLOUD_NAME,
-  api_key: config.CLOUDINARY_API_KEY,
-  api_secret: config.CLOUDINARY_API_SECRET,
-});
-
-// Cấu hình multer để lưu trữ tệp trên cloudinary
-const storage = new CloudinaryStorage({
-  cloudinary: cloudinary,
-  params: {
-    folder: config.CLOUDINARY_FOLDER_USER_IMAGE, // Folder save img in Cloudinary
-    allowed_formats: ['jpg', 'jpeg', 'png'], // Format for img
-    format: async (req, file) => 'jpg', // Format in cloudinary
-  },
-});
-
-const upload = multer({ storage: storage });
-
-exports.uploadImage = upload.single('image'), async (req, res, next) => {
+exports.uploadImg = async (req, res) => {
   try {
-    // Kiểm tra xem có tệp tin được tải lên không
-    if (req.file==null) {
-      return res.status(400).json({ error: 'No file provided for upload.' });
+    // Kiểm tra xem có file ảnh được tải lên hay không
+    if (!req.file) {
+      return res.status(400).json({ error: 'No image uploaded.' });
     }
-    console.log("Start Upload img");
-    // Tải lên tệp tin lên Cloudinary
-    const result = await cloudinary.uploader.upload(req.file.buffer, {
-      folder: config.CLOUDINARY_FOLDER_USER_IMAGE, // Sử dụng biến cấu hình
-    });
-    console.log(result);
-    // const userID = req.params.userid;
-    // // Lưu đường dẫn của ảnh vào trường image trong MongoDB
-    // const user = await User.findById(userID);
 
-    // if (!user) {
-    //   return res.status(404).json({ error: 'User not found.' });
-    // }
+    // Sử dụng thông tin từ đối tượng result trực tiếp
+    const imageUrl = req.file.path;
 
-    // user.image = result.secure_url; // Lưu URL của ảnh trong user model
-    // await user.save();
-
-    // // Trả về thông báo thành công
-    res.status(200).json({ success: true, url: result.secure_url });
+    // Trả về URL của ảnh trên Cloudinary
+    res.status(200).json({ imageUrl });
   } catch (error) {
-    console.log('Error uploading image:', error);
-    res.status(500).json({ error: 'Failed to upload image.' });
+    console.error('Error uploading image:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 };
-
 
 exports.getAllUser = (req, res, next) => {
   User.find({})
