@@ -2,10 +2,67 @@ const User = require("../models/User");
 const passport = require("passport");
 const bcrypt = require("bcrypt");
 const authenticate = require("../authenticate");
+
 var config = require('../config');
+
+const cloudinary = require('cloudinary').v2;
+const multer = require('multer');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+
+// Cấu hình cloudinary với biến môi trường từ config.js
+cloudinary.config({
+  cloud_name: config.CLOUDINARY_CLOUD_NAME,
+  api_key: config.CLOUDINARY_API_KEY,
+  api_secret: config.CLOUDINARY_API_SECRET,
+});
+
+// Cấu hình multer để lưu trữ tệp trên cloudinary
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: config.CLOUDINARY_FOLDER_USER_IMAGE, // Folder save img in Cloudinary
+    allowed_formats: ['jpg', 'jpeg', 'png'], // Format for img
+    format: async (req, file) => 'jpg', // Format in cloudinary
+  },
+});
+
+const upload = multer({ storage: storage });
+
+exports.uploadImage = upload.single('image'), async (req, res, next) => {
+  try {
+    // Kiểm tra xem có tệp tin được tải lên không
+    if (req.file==null) {
+      return res.status(400).json({ error: 'No file provided for upload.' });
+    }
+    console.log("Start Upload img");
+    // Tải lên tệp tin lên Cloudinary
+    const result = await cloudinary.uploader.upload(req.file.buffer, {
+      folder: config.CLOUDINARY_FOLDER_USER_IMAGE, // Sử dụng biến cấu hình
+    });
+    console.log(result);
+    // const userID = req.params.userid;
+    // // Lưu đường dẫn của ảnh vào trường image trong MongoDB
+    // const user = await User.findById(userID);
+
+    // if (!user) {
+    //   return res.status(404).json({ error: 'User not found.' });
+    // }
+
+    // user.image = result.secure_url; // Lưu URL của ảnh trong user model
+    // await user.save();
+
+    // // Trả về thông báo thành công
+    res.status(200).json({ success: true, url: result.secure_url });
+  } catch (error) {
+    console.log('Error uploading image:', error);
+    res.status(500).json({ error: 'Failed to upload image.' });
+  }
+};
+
+
 exports.getAllUser = (req, res, next) => {
   User.find({})
-  .populate("role_id" ,"title" )
+    .populate("role_id", "title")
     .then(
       (course) => {
         res.statusCode = 200;
@@ -38,7 +95,7 @@ exports.getUserById = (req, res, next) => {
 
 exports.getUserByUsername = (req, res, next) => {
   const userName = req.params.userName;
-  User.findById({username:userName})
+  User.findById({ username: userName })
     .then(
       (user) => {
         if (user) {
