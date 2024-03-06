@@ -8,9 +8,8 @@ var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 const roleRouter = require("./routes/role");
 const productRouter = require("./routes/product");
-const auctionRouter = require("./routes/auction");
+// const auctionRouter = require("./routes/auction");
 const walletRouter = require("./routes/wallet");
-const walletHistoryRouter = require("./routes/walletHistory");
 const walletRequestRouter = require("./routes/walletRequest");
 const cors = require('cors');
 var app = express();
@@ -19,10 +18,28 @@ const http = require('http');
 const socketIo = require('socket.io');
 
 const server = http.createServer(app);
-const io = socketIo(server);
+const io = require('socket.io')(server, {
+  cors: {
+    origin: 'http://127.0.0.1:5173',
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['my-custom-header'],
+    credentials: true,
+  }
+});
 const url = "mongodb://127.0.0.1:27017/MutantOrchidAuction";
 const connect = mongoose.connect(url);
 app.set('socketio', io);
+io.on('connection', (socket) => {
+  console.log('A client connected');
+
+  socket.on('disconnect', () => {
+    console.log('A client disconnected');
+  });
+});
+app.use((req, res, next) => {
+  req.io = io;
+  next();
+});
 connect.then(
   (db) => {
     console.log("Connected correctly to server");
@@ -32,7 +49,10 @@ connect.then(
   }
 );
 const corsOptions = {
-  origin: 'http://127.0.0.1:5173'
+  origin: 'http://127.0.0.1:5173',
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  preflightContinue: false,
+  optionsSuccessStatus: 204,
 };
 
 app.use(cors(corsOptions));
@@ -50,9 +70,8 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use("/roles", roleRouter);
 app.use("/products", productRouter);
-app.use("/auctions", auctionRouter);
+// app.use("/auctions", auctionRouter);
 app.use("/wallets", walletRouter);
-app.use("/walletsHistory", walletHistoryRouter);
 app.use("/walletRequest", walletRequestRouter)
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
@@ -79,6 +98,9 @@ app.use(session({
   resave: false,
   // store: new FileStore()
 }));
+server.listen(3001, () => {
+  console.log('Socket.IO server is running on port 3001');
+});
 app.use(passport.session());
 app.use(passport.initialize());
 

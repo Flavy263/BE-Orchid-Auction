@@ -24,10 +24,10 @@ const productSchema = new Schema(
       type: Boolean,
       default: false,
     },
-    price: {
-      type: mongoose.Types.Currency,
-      required: true,  
-    },
+    // price: {
+    //   type: mongoose.Types.Currency,
+    //   required: true,  
+    // },
   },
   {
     timestamps: true,
