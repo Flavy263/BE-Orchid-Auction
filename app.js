@@ -48,18 +48,18 @@ connect.then(
     console.log(err);
   }
 );
-const corsOptions = {
-  origin: 'http://127.0.0.1:5173',
-  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-  preflightContinue: false,
-  optionsSuccessStatus: 204,
-};
 // const corsOptions = {
-//   origin: 'http://localhost:5173',
-//   methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'], // Thêm PUT, PATCH và DELETE vào đây
-//   allowedHeaders: ['Content-Type', 'Authorization'],
-//   credentials: true,
+//   origin: 'http://127.0.0.1:5173',
+//   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+//   preflightContinue: false,
+//   optionsSuccessStatus: 204,
 // };
+const corsOptions = {
+  origin: 'http://localhost:5173',
+  methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'], // Thêm PUT, PATCH và DELETE vào đây
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+};
 
 app.use(cors(corsOptions));
 // view engine setup
