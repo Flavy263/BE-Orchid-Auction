@@ -3,62 +3,23 @@ const passport = require("passport");
 const bcrypt = require("bcrypt");
 const authenticate = require("../authenticate");
 
-var config = require('../config');
-
-const cloudinary = require('cloudinary').v2;
-const multer = require('multer');
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
-
-// Cấu hình cloudinary với biến môi trường từ config.js
-cloudinary.config({
-  cloud_name: config.CLOUDINARY_CLOUD_NAME,
-  api_key: config.CLOUDINARY_API_KEY,
-  api_secret: config.CLOUDINARY_API_SECRET,
-});
-
-// Cấu hình multer để lưu trữ tệp trên cloudinary
-const storage = new CloudinaryStorage({
-  cloudinary: cloudinary,
-  params: {
-    folder: config.CLOUDINARY_FOLDER_USER_IMAGE, // Folder save img in Cloudinary
-    allowed_formats: ['jpg', 'jpeg', 'png'], // Format for img
-    format: async (req, file) => 'jpg', // Format in cloudinary
-  },
-});
-
-const upload = multer({ storage: storage });
-
-exports.uploadImage = upload.single('image'), async (req, res, next) => {
+exports.uploadImg = async (req, res) => {
   try {
-    // Kiểm tra xem có tệp tin được tải lên không
-    if (req.file==null) {
-      return res.status(400).json({ error: 'No file provided for upload.' });
+    // Kiểm tra xem có file ảnh được tải lên hay không
+    if (!req.file) {
+      return res.status(400).json({ error: 'No image uploaded.' });
     }
-    console.log("Start Upload img");
-    // Tải lên tệp tin lên Cloudinary
-    const result = await cloudinary.uploader.upload(req.file.buffer, {
-      folder: config.CLOUDINARY_FOLDER_USER_IMAGE, // Sử dụng biến cấu hình
-    });
-    console.log(result);
-    // const userID = req.params.userid;
-    // // Lưu đường dẫn của ảnh vào trường image trong MongoDB
-    // const user = await User.findById(userID);
 
-    // if (!user) {
-    //   return res.status(404).json({ error: 'User not found.' });
-    // }
+    // Sử dụng thông tin từ đối tượng result trực tiếp
+    const imageUrl = req.file.path;
 
-    // user.image = result.secure_url; // Lưu URL của ảnh trong user model
-    // await user.save();
-
-    // // Trả về thông báo thành công
-    res.status(200).json({ success: true, url: result.secure_url });
+    // Trả về URL của ảnh trên Cloudinary
+    res.status(200).json({ imageUrl });
   } catch (error) {
-    console.log('Error uploading image:', error);
-    res.status(500).json({ error: 'Failed to upload image.' });
+    console.error('Error uploading image:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 };
-
 
 exports.getAllUser = (req, res, next) => {
   User.find({})
@@ -143,18 +104,26 @@ exports.getUserByRole = async (req, res, next) => {
 };
 
 exports.postAddUser = (req, res, next) => {
+  // Check if there is an image file uploaded
+  if (!req.file) {
+    return res.status(400).json({ success: false, message: 'No image uploaded.' });
+  }
+  // Get the Cloudinary image URL
+  const imageUrl = req.file.path;
+
   bcrypt.hash(req.body.password, 10, (err, hash) => {
     if (err) {
       return res
         .status(500)
         .json({ success: false, message: "Could not create hash!" });
     }
+
     User.register(
       new User({
         username: req.body.username,
         password: hash,
         email: req.body.email,
-        image: req.body.image,
+        image: imageUrl,
         gender: req.body.gender,
         address: req.body.address,
         fullName: req.body.fullName,
@@ -180,41 +149,6 @@ exports.postAddUser = (req, res, next) => {
     );
   });
 };
-
-// exports.postLoginUser = async (req, res, next) => {
-//   passport.authenticate('local', { session: false }, async (err, user, info) => {
-//     try {
-//       console.log("user", user);
-//       const member = await Accounts.findOne({ username: req.body.username });
-//       console.log("member", member);
-
-//       if (err) {
-//         return next(err);
-//       }
-
-//       if (!member) {
-//         return res.status(401).json({ success: false, message: 'Authentication failed. Invalid username or password.' });
-//       }
-
-//       // Kiểm tra mật khẩu đã hash
-//       bcrypt.compare(req.body.password, member.password, (err, result) => {
-//         if (err || !result) {
-//           return res.status(401).json({ success: false, message: 'Authentication failed. Invalid username or password.' });
-//         }
-//         // Nếu mật khẩu hợp lệ, tiếp tục
-//         req.login(member, { session: false }, (err) => {
-//           if (err) {
-//             return next(err);
-//           }
-//           const token = authenticate.getToken({ _id: user._id });
-//           res.status(200).json({ success: true, token: token, user: member, status: 'You are successfully logged in!' });
-//         });
-//       });
-//     } catch (error) {
-//       return next(error);
-//     }
-//   })(req, res, next);
-// };
 
 exports.postLoginUser = async (req, res, next) => {
   try {
@@ -251,20 +185,6 @@ exports.postLoginUser = async (req, res, next) => {
   }
 };
 
-// exports.fetchMe = async (req, res, next) => {
-//   const userId = req.decoded._id;
-//   User.findById(userId)
-//     .then(user => {
-//       if (!user) {
-//         return res.status(404).json({ success: false, message: 'User not found.' });
-//       }
-//       res.status(200).json({ success: true, user: user });
-//     })
-//     .catch(err => {
-//       console.error('Error finding user:', err);
-//       res.status(500).json({ success: false, message: 'Internal server error.' });
-//     });
-// };
 exports.fetchMe = async (req, res, next) => {
   const userId = req.decoded._id;
   try {

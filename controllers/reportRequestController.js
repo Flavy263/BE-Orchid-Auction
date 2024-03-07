@@ -1,5 +1,5 @@
 // crud product
-const Wallet_Request = require("../models/Wallet_Request");
+const Wallet_Request = require("../models/Report_Request");
 
 exports.getAllWalletRequest = (req, res, next) => {
   Wallet_Request.find({ status: true })

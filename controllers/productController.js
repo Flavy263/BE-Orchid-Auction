@@ -1,6 +1,24 @@
 // crud product
 const Product = require("../models/Product");
 
+exports.uploadVideo = async (req, res) => {
+  try {
+    // Check if a video file is uploaded
+    if (!req.file) {
+      return res.status(400).json({ error: 'No video uploaded.' });
+    }
+
+    // Use the information from the result object directly
+    const videoUrl = req.file.path;
+
+    // Return the URL of the video on Cloudinary
+    res.status(200).json({ videoUrl });
+  } catch (error) {
+    console.error('Error uploading video:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
 exports.getAllProduct = (req, res, next) => {
   Product.find({})
     .then((products) => {
