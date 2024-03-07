@@ -11,6 +11,7 @@ router.post("/", authenticateJWT, walletController.createWallet);
 router.post("/deposit", authenticateJWT, walletController.addMoney);
 router.post("/browse-deposit", authenticateJWT, walletController.browseDeposit);
 router.post("/withdraw", authenticateJWT, walletController.withdrawMoney);
+router.post("/registerJoinInAuction", authenticateJWT, walletController.registerJoinInAuction);
 
 router.get("/:walletId", authenticateJWT, walletController.getWalletByID);
 router.put("/:walletId", authenticateJWT, walletController.updateWalletByID);
