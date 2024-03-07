@@ -9,17 +9,18 @@ const walletRequestSchema = new Schema(
       ref: "User",
       required: true,
     },
-    money_request: {
-      type: mongoose.Types.Currency,
+    type_report: {
+      type: String,
       required: true,
     },
     status: {
       type: Boolean,
       required: true,
     },
-  },
-  {
-    timestamps: true,
+    timestamp: {
+      type: Date,
+      default: Date.now,
+    },
   }
 );
 

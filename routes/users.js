@@ -35,7 +35,7 @@ router.get("/", authenticateJWT, userController.getAllUser);
 
 router.get("/fetchMe", verifyToken, userController.fetchMe);
 
-router.post("/register", userController.postAddUser);
+router.post("/register", upload.single('image'), userController.postAddUser);
 
 router.post("/login", userController.postLoginUser);
 
