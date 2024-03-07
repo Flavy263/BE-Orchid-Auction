@@ -7,6 +7,7 @@ const passport = require("passport");
 const authenticateJWT = passport.authenticate("jwt", { session: false });
 
 router.get("/", reportRequestController.getAllWalletRequest);
+router.get("/getByRequestType", reportRequestController.getReportRequestsByType);
 router.post("/", authenticateJWT, reportRequestController.postAddWalletRequest);
 router.get("/:walletRequestId", authenticateJWT, reportRequestController.getWalletRequestById);
 router.put("/:walletRequestId", authenticateJWT, reportRequestController.putUpdateWalletRequest);

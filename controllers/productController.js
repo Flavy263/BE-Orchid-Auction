@@ -57,21 +57,49 @@ exports.getProductByUserID = (req, res, next) => {
 };
 
 exports.postAddProduct = (req, res, next) => {
-  Product.create(req.body)
-    .then(
-      (product) => {
-        console.log("Product Created ", product);
+  // Check if there is an image file uploaded
+  if (!req.files || (!req.files.image && !req.files.video)) {
+    return res.status(400).json({ success: false, message: 'No image or video uploaded.' });
+  }
+  // console.log();
+  // Initialize arrays to store image and video URLs
+  const imageUrls = [];
+  const videoUrls = [];
+  // Process image files
+  if (req.files.image) {
+    for (const image of req.files.image) {
+      imageUrls.push(image.path);
+    }
+  }
+  // Process video files
+  if (req.files.video) {
+    for (const video of req.files.video) {
+      videoUrls.push(video.path);
+    }
+  }
+  // Create product
+  Product.register(
+    new User({
+      name: req.body.username,
+      image: imageUrls,
+      video: videoUrls,
+      description: req.body.description,
+    }),
+    (err, user) => {
+      // console.log("req",req);
+      if (err) {
+        res.statusCode = 500;
+        res.setHeader("Content-Type", "application/json");
+        res.json({ err: err });
+      } else {
+        // passport.authenticate('local')(req, res, () => {
         res.statusCode = 200;
         res.setHeader("Content-Type", "application/json");
-        res.json({
-          success: true,
-          status: "Created Successful!",
-          product: product,
-        });
-      },
-      (err) => next(err)
-    )
-    .catch((err) => next(err));
+        res.json({ success: true, status: "Registration Product Successful!" });
+        // });
+      }
+    }
+  );
 };
 
 exports.putUpdateProduct = (req, res, next) => {

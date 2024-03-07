@@ -3,6 +3,7 @@ const schedule = require("node-schedule");
 const Auctions = require("../models/Auction");
 const Orders = require("../models/Order");
 const socketIo = require("socket.io");
+const Product = require("../models/Product");
 // Đường dẫn đến model của phiên đấu giá
 // router.post('/newAuction', async (req, res) => {
 //   try {
@@ -117,11 +118,14 @@ exports.getAllAuction = (req, res, next) => {
 };
 
 exports.createAuction = (req, res, next) => {
+  const product_id = req.body.product_id;
   Auctions.create(req.body)
     .then(
       async (auction) => {
         console.log("Auction Created ", auction);
-
+        const product = await Product.findOne({product_id});
+        product.status = true;
+        await product.save();
         // Sau khi phiên đấu giá được tạo, gọi hàm để lên lịch cập nhật trạng thái
         await scheduleAuctionStatusUpdates(auction, req.app.get("socketio"));
 

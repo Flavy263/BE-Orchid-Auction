@@ -12,7 +12,7 @@ const productSchema = new Schema({
     required: true,
   },
   video: {
-    type: String,
+    type: Array,
     required: true,
   },
   description: {
