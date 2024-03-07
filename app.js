@@ -72,7 +72,7 @@ app.use("/roles", roleRouter);
 app.use("/products", productRouter);
 app.use("/auctions", auctionRouter);
 app.use("/wallets", walletRouter);
-app.use("/reportRequest", ReportRequestRouter);
+app.use("/report_requests", ReportRequestRouter);
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
   next(createError(404));

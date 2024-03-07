@@ -17,6 +17,20 @@ exports.getWallet = (req, res, next) => {
     .catch((err) => next(err));
 };
 
+exports.getWalletByUserId = (req, res, next) => {
+  const { user_id } = req.body
+  Wallets.find({ user_id : user_id })
+    .then(
+      (wallet) => {
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "application/json");
+        res.json(wallet);
+      },
+      (err) => next(err)
+    )
+    .catch((err) => next(err));
+};
+
 exports.createEmptyWallet = (req, res, next) => {
   Wallets.create({})
     .then(
@@ -190,7 +204,7 @@ exports.registerJoinInAuction = async (req, res, next) => {
       return res.status(404).json({ error: "Wallet not found for the user!" });
     }
     // Tìm phiên đấu giá dựa trên auction_id
-    const auction = await Auction.findOne({ _id: auction_id });
+    const auction = await Auction.findOne({ auction_id });
 
     if (!auction) {
       return res.status(404).json({ error: "Auction not found!" });
