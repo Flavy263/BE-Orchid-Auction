@@ -62,7 +62,8 @@ router.post(
   auctionMemberController.saveAuctionMember
 );
 
+router.get("/", authenticateJWT, auctionController.getAllAuction);
+
 router.get('/auctionBid/:auctionId/:customerId', auctionController.checkUserInAuction);
 
-module.exports = router;
 module.exports = router;

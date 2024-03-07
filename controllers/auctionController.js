@@ -290,7 +290,7 @@ exports.getAuctionaAuctioned = (req, res, next) => {
     .catch((err) => next(err));
 };
 
-const AuctionMember = require("../models/Auction");
+const AuctionMember = require("../models/Auction_Member");
 
 exports.checkUserInAuction = (auctionId, userId) => {
   return AuctionMember.findOne({ auction_id: auctionId, member_id: userId })

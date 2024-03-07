@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 require("mongoose-currency").loadType(mongoose);
 
-const walletRequestSchema = new Schema(
+const reportRequestSchema = new Schema(
   {
     user_id: {
       type: mongoose.Schema.Types.ObjectId,
@@ -24,6 +24,6 @@ const walletRequestSchema = new Schema(
   }
 );
 
-var WalletRequest = mongoose.model("Wallet_Request", walletRequestSchema);
+var RepoerRequest = mongoose.model("Report_Request", reportRequestSchema);
 
-module.exports = WalletRequest;
+module.exports = RepoerRequest;
