@@ -104,18 +104,26 @@ exports.getUserByRole = async (req, res, next) => {
 };
 
 exports.postAddUser = (req, res, next) => {
+  // Check if there is an image file uploaded
+  if (!req.file) {
+    return res.status(400).json({ success: false, message: 'No image uploaded.' });
+  }
+  // Get the Cloudinary image URL
+  const imageUrl = req.file.path;
+
   bcrypt.hash(req.body.password, 10, (err, hash) => {
     if (err) {
       return res
         .status(500)
         .json({ success: false, message: "Could not create hash!" });
     }
+
     User.register(
       new User({
         username: req.body.username,
         password: hash,
         email: req.body.email,
-        image: req.body.image,
+        image: imageUrl,
         gender: req.body.gender,
         address: req.body.address,
         fullName: req.body.fullName,
@@ -141,41 +149,6 @@ exports.postAddUser = (req, res, next) => {
     );
   });
 };
-
-// exports.postLoginUser = async (req, res, next) => {
-//   passport.authenticate('local', { session: false }, async (err, user, info) => {
-//     try {
-//       console.log("user", user);
-//       const member = await Accounts.findOne({ username: req.body.username });
-//       console.log("member", member);
-
-//       if (err) {
-//         return next(err);
-//       }
-
-//       if (!member) {
-//         return res.status(401).json({ success: false, message: 'Authentication failed. Invalid username or password.' });
-//       }
-
-//       // Kiểm tra mật khẩu đã hash
-//       bcrypt.compare(req.body.password, member.password, (err, result) => {
-//         if (err || !result) {
-//           return res.status(401).json({ success: false, message: 'Authentication failed. Invalid username or password.' });
-//         }
-//         // Nếu mật khẩu hợp lệ, tiếp tục
-//         req.login(member, { session: false }, (err) => {
-//           if (err) {
-//             return next(err);
-//           }
-//           const token = authenticate.getToken({ _id: user._id });
-//           res.status(200).json({ success: true, token: token, user: member, status: 'You are successfully logged in!' });
-//         });
-//       });
-//     } catch (error) {
-//       return next(error);
-//     }
-//   })(req, res, next);
-// };
 
 exports.postLoginUser = async (req, res, next) => {
   try {
@@ -212,20 +185,6 @@ exports.postLoginUser = async (req, res, next) => {
   }
 };
 
-// exports.fetchMe = async (req, res, next) => {
-//   const userId = req.decoded._id;
-//   User.findById(userId)
-//     .then(user => {
-//       if (!user) {
-//         return res.status(404).json({ success: false, message: 'User not found.' });
-//       }
-//       res.status(200).json({ success: true, user: user });
-//     })
-//     .catch(err => {
-//       console.error('Error finding user:', err);
-//       res.status(500).json({ success: false, message: 'Internal server error.' });
-//     });
-// };
 exports.fetchMe = async (req, res, next) => {
   const userId = req.decoded._id;
   try {

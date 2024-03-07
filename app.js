@@ -10,7 +10,7 @@ const roleRouter = require("./routes/role");
 const productRouter = require("./routes/product");
 const auctionRouter = require("./routes/auction");
 const walletRouter = require("./routes/wallet");
-const walletRequestRouter = require("./routes/walletRequest");
+const ReportRequestRouter = require("./routes/reportRequest");
 const cors = require('cors');
 var app = express();
 const mongoose = require("mongoose");
@@ -78,7 +78,7 @@ app.use("/roles", roleRouter);
 app.use("/products", productRouter);
 app.use("/auctions", auctionRouter);
 app.use("/wallets", walletRouter);
-app.use("/walletRequest", walletRequestRouter)
+app.use("/reportRequest", ReportRequestRouter);
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
   next(createError(404));
@@ -96,7 +96,7 @@ app.use(function (err, req, res, next) {
 });
 
 var passport = require('passport');
-const WalletRequest = require('./models/Wallet_Request');
+
 app.use(session({
   // name: 'session-id',
   secret: '12345-67890-09876-54321',

@@ -2,26 +2,19 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 require("mongoose-currency").loadType(mongoose);
 
-const productSchema = new Schema({
-  name: {
-    type: String,
+const reportRequestSchema = new Schema({
+  user_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
     required: true,
   },
-  image: {
-    type: Array,
-    required: true,
-  },
-  video: {
-    type: String,
-    required: true,
-  },
-  description: {
+  type_report: {
     type: String,
     required: true,
   },
   status: {
     type: Boolean,
-    default: false,
+    required: true,
   },
   timestamp: {
     type: Date,
@@ -29,6 +22,6 @@ const productSchema = new Schema({
   },
 });
 
-var Product = mongoose.model("Product", productSchema);
+var ReportRequest = mongoose.model("Report_Request", reportRequestSchema);
 
-module.exports = Product;
+module.exports = ReportRequest;

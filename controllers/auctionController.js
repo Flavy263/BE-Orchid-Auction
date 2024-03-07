@@ -289,3 +289,18 @@ exports.getAuctionaAuctioned = (req, res, next) => {
     )
     .catch((err) => next(err));
 };
+
+const AuctionMember = require("../models/Auction_Member");
+
+exports.checkUserInAuction = (auctionId, userId) => {
+  return AuctionMember.findOne({ auction_id: auctionId, member_id: userId })
+    .then(
+      (auction) => {
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "application/json");
+        res.json(auction);
+      },
+      (err) => next(err)
+    )
+    .catch((err) => next(err));
+};

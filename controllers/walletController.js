@@ -1,5 +1,7 @@
 const Wallets = require("../models/Wallet");
 const WalletHistorys = require("../models/Wallet_History");
+const Auction = require("../models/Auction");
+const ReportRequest = require("../models/Report_Request");
 
 exports.getWallet = (req, res, next) => {
   Wallets.find({})
@@ -125,11 +127,86 @@ exports.withdrawMoney = async (req, res, next) => {
     await wallet.save();
 
     // Lưu lịch sử thay đổi
-    await WalletHistory.create({
+    await WalletHistorys.create({
       wallet_id: wallet._id,
       amount,
       type: "withdraw",
     });
+
+    res.status(200).json({ message: "Withdrawal successful." });
+  } catch (error) {
+    console.error("Error withdrawing money:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.browseDeposit = async (req, res) => {
+  try {
+    const { reportRequestId, depositAmount } = req.body;
+
+    // Thay đổi trạng thái của reportRequest
+    const updatedReport = await ReportRequest.findByIdAndUpdate(
+      reportRequestId,
+      { status: false },
+      { new: true }
+    );
+
+    if (!updatedReport) {
+      return res.status(404).json({ error: "ReportRequest not found." });
+    }
+
+    // Nạp tiền vào ví
+    const wallet = await Wallets.findOne({ user_id: updatedReport.user_id });
+
+    if (!wallet) {
+      return res.status(404).json({ error: "Wallet not found for the user." });
+    }
+
+    wallet.balance += depositAmount;
+    await wallet.save();
+
+    // Ghi lại log trong WalletHistory
+    await WalletHistorys.create({
+      wallet_id: wallet._id,
+      amount: depositAmount,
+      type: "deposit",
+    });
+
+    res.status(200).json({ message: "Status changed and deposit successful." });
+  } catch (error) {
+    console.error("Error changing status and depositing money:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.registerJoinInAuction = async (req, res, next) => {
+  try {
+    const { user_id, auction_id } = req.body;
+
+    // Tìm ví của người dùng
+    const wallet = await Wallet.findOne({ user_id });
+
+    if (!wallet) {
+      return res.status(404).json({ error: "Wallet not found for the user!" });
+    }
+    // Tìm phiên đấu giá dựa trên auction_id
+    const auction = await Auction.findOne({ _id: auction_id });
+
+    if (!auction) {
+      return res.status(404).json({ error: "Auction not found!" });
+    }
+
+    // Lấy giá trị starting_price từ phiên đấu giá
+    const starting_price = auction.starting_price;
+
+    // Kiểm tra xem có đủ tiền để rút không
+    if (wallet.balance < starting_price) {
+      return res.status(400).json({ error: "Not enough money to register joining in auction!" });
+    }
+
+    // Rút tiền từ ví
+    wallet.balance -= starting_price;
+    await wallet.save();
 
     res.status(200).json({ message: "Withdrawal successful." });
   } catch (error) {
