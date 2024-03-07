@@ -1,5 +1,6 @@
 const Wallets = require("../models/Wallet");
 const WalletHistorys = require("../models/Wallet_History");
+const ReportRequest = require("../models/Report_Request");
 
 exports.getWallet = (req, res, next) => {
   Wallets.find({})
@@ -125,7 +126,7 @@ exports.withdrawMoney = async (req, res, next) => {
     await wallet.save();
 
     // Lưu lịch sử thay đổi
-    await WalletHistory.create({
+    await WalletHistorys.create({
       wallet_id: wallet._id,
       amount,
       type: "withdraw",
@@ -134,6 +135,45 @@ exports.withdrawMoney = async (req, res, next) => {
     res.status(200).json({ message: "Withdrawal successful." });
   } catch (error) {
     console.error("Error withdrawing money:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.browseDeposit = async (req, res) => {
+  try {
+    const { reportRequestId, depositAmount } = req.body;
+
+    // Thay đổi trạng thái của reportRequest
+    const updatedReport = await ReportRequest.findByIdAndUpdate(
+      reportRequestId,
+      { status: false },
+      { new: true }
+    );
+
+    if (!updatedReport) {
+      return res.status(404).json({ error: "ReportRequest not found." });
+    }
+
+    // Nạp tiền vào ví
+    const wallet = await Wallets.findOne({ user_id: updatedReport.user_id });
+
+    if (!wallet) {
+      return res.status(404).json({ error: "Wallet not found for the user." });
+    }
+
+    wallet.balance += depositAmount;
+    await wallet.save();
+
+    // Ghi lại log trong WalletHistory
+    await WalletHistorys.create({
+      wallet_id: wallet._id,
+      amount: depositAmount,
+      type: "deposit",
+    });
+
+    res.status(200).json({ message: "Status changed and deposit successful." });
+  } catch (error) {
+    console.error("Error changing status and depositing money:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
