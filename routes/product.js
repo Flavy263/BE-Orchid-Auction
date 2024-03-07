@@ -49,6 +49,8 @@ const uploadVideo = multer({ storage: storage });
 router.post('/uploadVideo', uploadVideo.single('video'), productController.uploadVideo);
 // method get
 router.get("/", productController.getAllProduct);
+
+router.get("/:userId", authenticateJWT, productController.getProductByUserID);
 // method post
 router.post("/", authenticateJWT, productController.postAddProduct);
 // method put update product

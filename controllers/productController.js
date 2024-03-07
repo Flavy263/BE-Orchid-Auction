@@ -1,11 +1,12 @@
 // crud product
 const Product = require("../models/Product");
+const Auctions = require("../models/Auction");
 
 exports.uploadVideo = async (req, res) => {
   try {
     // Check if a video file is uploaded
     if (!req.file) {
-      return res.status(400).json({ error: 'No video uploaded.' });
+      return res.status(400).json({ error: "No video uploaded." });
     }
 
     // Use the information from the result object directly
@@ -14,8 +15,8 @@ exports.uploadVideo = async (req, res) => {
     // Return the URL of the video on Cloudinary
     res.status(200).json({ videoUrl });
   } catch (error) {
-    console.error('Error uploading video:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error("Error uploading video:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
@@ -33,6 +34,25 @@ exports.getAllProduct = (req, res, next) => {
       res.setHeader("Content-Type", "application/json");
       res.json(products);
     })
+    .catch((err) => next(err));
+};
+
+exports.getProductByUserID = (req, res, next) => {
+  const userId = req.params.userId;
+  Product.find({ host_id: userId })
+    .then(
+      (user) => {
+        if (user) {
+          res.statusCode = 200;
+          res.setHeader("Content-Type", "application/json");
+          res.json(user);
+        } else {
+          res.statusCode = 404;
+          res.end("Product not found");
+        }
+      },
+      (err) => next(err)
+    )
     .catch((err) => next(err));
 };
 
