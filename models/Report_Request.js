@@ -23,9 +23,12 @@ const reportRequestSchema = new Schema({
     type: Boolean,
     default: true,
   },
-  timestamp: {
+  create_timestamp: {
     type: Date,
     default: Date.now,
+  },
+  update_timestamp: {
+    type: Date,
   },
 });
 

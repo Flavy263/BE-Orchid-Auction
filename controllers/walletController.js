@@ -18,8 +18,8 @@ exports.getWallet = (req, res, next) => {
 };
 
 exports.getWalletByUserId = (req, res, next) => {
-  const { user_id } = req.body
-  Wallets.find({ user_id : user_id })
+  const { user_id } = req.body;
+  Wallets.find({ user_id: user_id })
     .then(
       (wallet) => {
         res.statusCode = 200;
@@ -156,12 +156,12 @@ exports.withdrawMoney = async (req, res, next) => {
 
 exports.browseDeposit = async (req, res) => {
   try {
-    const { reportRequestId, depositAmount } = req.body;
+    const { reportRequestId, depositAmount, note } = req.body;
 
     // Thay đổi trạng thái của reportRequest
     const updatedReport = await ReportRequest.findByIdAndUpdate(
       reportRequestId,
-      { status: false },
+      { status: false, note: note, update_timestamp: Date.now() },
       { new: true }
     );
 
