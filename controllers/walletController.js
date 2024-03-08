@@ -125,7 +125,7 @@ exports.withdrawMoney = async (req, res, next) => {
     const { user_id, amount } = req.body;
 
     // Tìm ví của người dùng
-    const wallet = await Wallet.findOne({ user_id });
+    const wallet = await Wallets.findOne({ user_id });
 
     if (!wallet) {
       return res.status(404).json({ error: "Wallet not found for the user." });
