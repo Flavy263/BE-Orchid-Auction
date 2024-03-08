@@ -140,7 +140,7 @@ exports.createAuction = (req, res, next) => {
 
 exports.getAuctionByUserId = (req, res, next) => {
   const hostId = req.params.host_id;
-  Product.find({ host_id: hostId })
+  Auctions.find({ host_id: hostId })
     .then(
       (user) => {
         if (user) {
