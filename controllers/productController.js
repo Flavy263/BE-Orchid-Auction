@@ -1,11 +1,12 @@
 // crud product
 const Product = require("../models/Product");
+const Auctions = require("../models/Auction");
 
 exports.uploadVideo = async (req, res) => {
   try {
     // Check if a video file is uploaded
     if (!req.file) {
-      return res.status(400).json({ error: 'No video uploaded.' });
+      return res.status(400).json({ error: "No video uploaded." });
     }
 
     // Use the information from the result object directly
@@ -14,8 +15,8 @@ exports.uploadVideo = async (req, res) => {
     // Return the URL of the video on Cloudinary
     res.status(200).json({ videoUrl });
   } catch (error) {
-    console.error('Error uploading video:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error("Error uploading video:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
@@ -36,51 +37,58 @@ exports.getAllProduct = (req, res, next) => {
     .catch((err) => next(err));
 };
 
+exports.getProductByUserID = (req, res, next) => {
+  const userId = req.params.userId;
+  Product.find({ host_id: userId })
+    .then(
+      (user) => {
+        if (user) {
+          res.statusCode = 200;
+          res.setHeader("Content-Type", "application/json");
+          res.json(user);
+        } else {
+          res.statusCode = 404;
+          res.end("Product not found");
+        }
+      },
+      (err) => next(err)
+    )
+    .catch((err) => next(err));
+};
 
-exports.postAddProduct = (req, res, next) => {
-  // Check if there is an image file uploaded
-  if (!req.files || (!req.files.image && !req.files.video)) {
-    return res.status(400).json({ success: false, message: 'No image or video uploaded.' });
-  }
-  // console.log();
-  // Initialize arrays to store image and video URLs
-  const imageUrls = [];
-  const videoUrls = [];
-  // Process image files
-  if (req.files.image) {
-    for (const image of req.files.image) {
-      imageUrls.push(image.path);
+exports.postAddProduct = async (req, res) => {
+  try {
+    // Kiểm tra xem có file ảnh và video được tải lên hay không
+    if (!req.files || !req.files["image"] || !req.files["video"]) {
+      return res.status(400).json({ error: "No image or video uploaded." });
     }
-  }
-  // Process video files
-  if (req.files.video) {
-    for (const video of req.files.video) {
-      videoUrls.push(video.path);
-    }
-  }
-  // Create product
-  Product.register(
-    new User({
-      name: req.body.username,
+
+    // Sử dụng thông tin từ đối tượng result trực tiếp
+    const imageUrls = req.files["image"].map((image) => image.path);
+    const videoUrls = req.files["video"].map((video) => video.path);
+
+    // Tạo một đối tượng Product mới
+    const newProduct = new Product({
+      name: req.body.name,
       image: imageUrls,
       video: videoUrls,
       description: req.body.description,
-    }),
-    (err, user) => {
-      // console.log("req",req);
-      if (err) {
-        res.statusCode = 500;
-        res.setHeader("Content-Type", "application/json");
-        res.json({ err: err });
-      } else {
-        // passport.authenticate('local')(req, res, () => {
-        res.statusCode = 200;
-        res.setHeader("Content-Type", "application/json");
-        res.json({ success: true, status: "Registration Product Successful!" });
-        // });
-      }
-    }
-  );
+      host_id: req.body.host_id,
+    });
+
+    // Lưu sản phẩm vào cơ sở dữ liệu
+    const savedProduct = await newProduct.save();
+
+    // In ra thông tin sản phẩm sau khi đăng ký thành công
+    console.log("Product created:", savedProduct);
+
+    res
+      .status(200)
+      .json({ success: true, status: "Product created successfully!" });
+  } catch (error) {
+    console.error("Error uploading image or video:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 };
 
 exports.putUpdateProduct = (req, res, next) => {

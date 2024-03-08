@@ -215,7 +215,9 @@ exports.registerJoinInAuction = async (req, res, next) => {
 
     // Kiểm tra xem có đủ tiền để rút không
     if (wallet.balance < starting_price) {
-      return res.status(400).json({ error: "Not enough money to register joining in auction!" });
+      return res
+        .status(400)
+        .json({ error: "Not enough money to register joining in auction!" });
     }
 
     // Rút tiền từ ví
@@ -225,6 +227,27 @@ exports.registerJoinInAuction = async (req, res, next) => {
     res.status(200).json({ message: "Withdrawal successful." });
   } catch (error) {
     console.error("Error withdrawing money:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.getWalletHistoryByUserID = async (req, res, next) => {
+  try {
+    const user_id = req.params.user_id;
+
+    // Tìm ví của người dùng
+    const wallet = await Wallets.findOne({ user_id });
+
+    if (!wallet) {
+      return res.status(404).json({ error: "Wallet not found for the user." });
+    }
+
+    // Lấy lịch sử của ví
+    const walletHistory = await WalletHistorys.find({ wallet_id: wallet._id });
+
+    res.status(200).json(walletHistory);
+  } catch (error) {
+    console.error("Error fetching wallet history:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };

@@ -20,5 +20,6 @@ router.post(
 
 router.get("/:walletId", authenticateJWT, walletController.getWalletByID);
 router.put("/:walletId", authenticateJWT, walletController.updateWalletByID);
+router.get("/wallet-history/:user_id", authenticateJWT, walletController.getWalletHistoryByUserID);
 
 module.exports = router;
