@@ -36,51 +36,53 @@ exports.getAllProduct = (req, res, next) => {
     .catch((err) => next(err));
 };
 
+const cloudinary = require('cloudinary').v2;
+exports.postAddProduct = async (req, res) => {
+  try {
+    const image = req.files['image'][0];
+    const video = req.files['video'][0];
 
-exports.postAddProduct = (req, res, next) => {
-  // Check if there is an image file uploaded
-  if (!req.files || (!req.files.image && !req.files.video)) {
-    return res.status(400).json({ success: false, message: 'No image or video uploaded.' });
-  }
-  // console.log();
-  // Initialize arrays to store image and video URLs
-  const imageUrls = [];
-  const videoUrls = [];
-  // Process image files
-  if (req.files.image) {
-    for (const image of req.files.image) {
-      imageUrls.push(image.path);
+    const CHUNK_SIZE = 1024; // Đặt kích thước phần nhỏ theo ý muốn
+
+    const imageBuffer = image.buffer;
+    const videoBuffer = video.buffer;
+
+    const imageChunks = [];
+    const videoChunks = [];
+
+    for (let i = 0; i < imageBuffer.length; i += CHUNK_SIZE) {
+      imageChunks.push(imageBuffer.slice(i, i + CHUNK_SIZE));
     }
-  }
-  // Process video files
-  if (req.files.video) {
-    for (const video of req.files.video) {
-      videoUrls.push(video.path);
+
+    for (let i = 0; i < videoBuffer.length; i += CHUNK_SIZE) {
+      videoChunks.push(videoBuffer.slice(i, i + CHUNK_SIZE));
     }
+
+    const imageResults = await Promise.all(
+      imageChunks.map((chunk) =>
+        cloudinary.uploader.upload(chunk.toString('base64'), {
+          folder: 'uploads',
+          resource_type: 'image',
+        })
+      )
+    );
+
+    const videoResults = await Promise.all(
+      videoChunks.map((chunk) =>
+        cloudinary.uploader.upload(chunk.toString('base64'), {
+          folder: 'uploads',
+          resource_type: 'video',
+        })
+      )
+    );
+
+
+    res.status(200).json({ imageUrl: imageResults.secure_url, videoUrl: videoResults.secure_url });
+
+  } catch (error) {
+    console.error('Error uploading files:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
-  // Create product
-  Product.register(
-    new User({
-      name: req.body.username,
-      image: imageUrls,
-      video: videoUrls,
-      description: req.body.description,
-    }),
-    (err, user) => {
-      // console.log("req",req);
-      if (err) {
-        res.statusCode = 500;
-        res.setHeader("Content-Type", "application/json");
-        res.json({ err: err });
-      } else {
-        // passport.authenticate('local')(req, res, () => {
-        res.statusCode = 200;
-        res.setHeader("Content-Type", "application/json");
-        res.json({ success: true, status: "Registration Product Successful!" });
-        // });
-      }
-    }
-  );
 };
 
 exports.putUpdateProduct = (req, res, next) => {

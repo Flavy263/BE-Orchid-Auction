@@ -9,12 +9,13 @@ const cloudinary = require('cloudinary').v2;
 const multer = require('multer');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const config = require('../config'); // Import file chứa thông tin cấu hình
-
+console.log("A0");
 cloudinary.config({
     cloud_name: config.CLOUDINARY_CLOUD_NAME,
     api_key: config.CLOUDINARY_API_KEY,
     api_secret: config.CLOUDINARY_API_SECRET,
 });
+
 
 const storageVideo = new CloudinaryStorage({
     cloudinary: cloudinary,
@@ -25,18 +26,12 @@ const storageVideo = new CloudinaryStorage({
 });
 const uploadVideo = multer({ storage: storageVideo });
 
-// Cấu hình multer và cloudinary storage
-const storageImgAndVideo = new CloudinaryStorage({
-    cloudinary: cloudinary,
-    params: {
-      folder: config.CLOUDINARY_FOLDER_PRODUCT,
-      allowed_formats: ['jpg', 'jpeg', 'png', 'mp4'],
-    },
-});
-const uploadImgAndVideo = multer({ storage: storageImgAndVideo });
-const uploadFiles = uploadImgAndVideo.fields([{ name: 'image', maxCount: 10 }, { name: 'video', maxCount: 5 }]);
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+
+console.log("A1");
 // method post
-router.post("/", authenticateJWT, uploadFiles, productController.postAddProduct);
+router.post('/uploadVideoAndImage', authenticateJWT, upload.fields([{ name: 'image', maxCount: 5 }, { name: 'video', maxCount: 1 }]), productController.postAddProduct);
 
 router.post('/uploadVideo', uploadVideo.single('video'), productController.uploadVideo);
 // method get
@@ -54,3 +49,9 @@ router.delete("/:productId", authenticateJWT, productController.deleteProduct);
 // router.post("/login", userController.postLoginUser);
 
 module.exports = router;
+
+
+
+
+
+
