@@ -29,14 +29,13 @@ const uploadVideo = multer({ storage: storageVideo });
 const storageImgAndVideo = new CloudinaryStorage({
     cloudinary: cloudinary,
     params: {
-      folder: config.CLOUDINARY_FOLDER_PRODUCT,
-      allowed_formats: ['jpg', 'jpeg', 'png', 'mp4'],
+        folder: config.CLOUDINARY_FOLDER_PRODUCT,
+        resource_type: 'auto',
     },
 });
 const uploadImgAndVideo = multer({ storage: storageImgAndVideo });
-const uploadFiles = uploadImgAndVideo.fields([{ name: 'image', maxCount: 10 }, { name: 'video', maxCount: 5 }]);
-// method post
-router.post("/", authenticateJWT, uploadFiles, productController.postAddProduct);
+
+router.post("/addProduct", authenticateJWT, uploadImgAndVideo.fields([{ name: 'image', maxCount: 5 }, { name: 'video', maxCount: 5 }]), productController.postAddProduct);
 
 router.post('/uploadVideo', uploadVideo.single('video'), productController.uploadVideo);
 // method get
