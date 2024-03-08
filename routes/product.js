@@ -26,17 +26,25 @@ const storageVideo = new CloudinaryStorage({
 });
 const uploadVideo = multer({ storage: storageVideo });
 
-const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
+// Cấu hình multer và cloudinary storage
+const storageImgAndVideo = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+        folder: config.CLOUDINARY_FOLDER_PRODUCT,
+        resource_type: 'auto',
+    },
+});
+const uploadImgAndVideo = multer({ storage: storageImgAndVideo });
 
-console.log("A1");
-// method post
-router.post('/uploadVideoAndImage', authenticateJWT, upload.fields([{ name: 'image', maxCount: 5 }, { name: 'video', maxCount: 1 }]), productController.postAddProduct);
+router.post("/addProduct", authenticateJWT, uploadImgAndVideo.fields([{ name: 'image', maxCount: 5 }, { name: 'video', maxCount: 5 }]), productController.postAddProduct);
 
 router.post('/uploadVideo', uploadVideo.single('video'), productController.uploadVideo);
 // method get
 router.get("/", productController.getAllProduct);
 
+router.get("/:userId", authenticateJWT, productController.getProductByUserID);
+// method post
+router.post("/", authenticateJWT, productController.postAddProduct);
 // method put update product
 router.put("/:productId", authenticateJWT, productController.putUpdateProduct);
 // method delete product

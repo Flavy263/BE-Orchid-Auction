@@ -23,6 +23,11 @@ const productSchema = new Schema({
     type: Boolean,
     default: false,
   },
+  host_id: {
+    type: Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
   timestamp: {
     type: Date,
     default: Date.now,
