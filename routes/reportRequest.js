@@ -7,10 +7,36 @@ const passport = require("passport");
 const authenticateJWT = passport.authenticate("jwt", { session: false });
 
 router.get("/", reportRequestController.getAllWalletRequest);
-router.get("/getByRequestType", reportRequestController.getReportRequestsByType);
+router.get(
+  "/getByRequestMoney",
+  authenticateJWT,
+  reportRequestController.getReportRequestMoney
+);
+router.get(
+  "/getByRequestMoneyPaid",
+  authenticateJWT,
+  reportRequestController.getReportRequestMoneyPaid
+);
+router.get(
+  "/getByRequestBan",
+  authenticateJWT,
+  reportRequestController.getReportRequestBan
+);
 router.post("/", authenticateJWT, reportRequestController.postAddWalletRequest);
-router.get("/:walletRequestId", authenticateJWT, reportRequestController.getWalletRequestById);
-router.put("/:walletRequestId", authenticateJWT, reportRequestController.putUpdateWalletRequest);
-router.delete("/:walletRequestId", authenticateJWT, reportRequestController.deleteWalletRequest);
+router.get(
+  "/:walletRequestId",
+  authenticateJWT,
+  reportRequestController.getWalletRequestById
+);
+router.put(
+  "/:walletRequestId",
+  authenticateJWT,
+  reportRequestController.putUpdateWalletRequest
+);
+router.delete(
+  "/:walletRequestId",
+  authenticateJWT,
+  reportRequestController.deleteWalletRequest
+);
 
 module.exports = router;
