@@ -12,13 +12,23 @@ const reportRequestSchema = new Schema({
     type: String,
     required: true,
   },
-  status: {
-    type: Boolean,
+  description: {
+    type: String,
     required: true,
   },
-  timestamp: {
+  note: {
+    type: String,
+  },
+  status: {
+    type: Boolean,
+    default: true,
+  },
+  create_timestamp: {
     type: Date,
     default: Date.now,
+  },
+  update_timestamp: {
+    type: Date,
   },
 });
 

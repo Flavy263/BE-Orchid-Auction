@@ -1,8 +1,8 @@
 // crud product
-const Wallet_Request = require("../models/Report_Request");
+const Report_Request = require("../models/Report_Request");
 
 exports.getAllWalletRequest = (req, res, next) => {
-  Wallet_Request.find({ status: true })
+  Report_Request.find({ status: true })
     .then((walletRequest) => {
       if (!walletRequest || walletRequest.length === 0) {
         // Nếu không có cái nào nào thỏa mãn điều kiện, trả về thông báo hoặc mã lỗi
@@ -18,27 +18,82 @@ exports.getAllWalletRequest = (req, res, next) => {
     .catch((err) => next(err));
 };
 
+exports.getReportRequestMoney = (req, res, next) => {
+  Report_Request.find({ type_report: "money", status: true })
+    .populate("user_id")
+    .then((reportRequests) => {
+      if (!reportRequests || reportRequests.length === 0) {
+        //Not Found
+        const err = new Error(
+          `No active report request found for type: ${type_report}`
+        );
+        err.status = 404;
+        throw err;
+      }
+      res.statusCode = 200;
+      res.setHeader("Content-Type", "application/json");
+      res.json(reportRequests);
+    })
+    .catch((err) => next(err));
+};
+exports.getReportRequestMoneyPaid = (req, res, next) => {
+  Report_Request.find({ type_report: "money", status: false })
+    .populate("user_id")
+    .then((reportRequests) => {
+      if (!reportRequests || reportRequests.length === 0) {
+        //Not Found
+        const err = new Error(
+          `No active report request found for type: ${type_report}`
+        );
+        err.status = 404;
+        throw err;
+      }
+      res.statusCode = 200;
+      res.setHeader("Content-Type", "application/json");
+      res.json(reportRequests);
+    })
+    .catch((err) => next(err));
+};
+
+exports.getReportRequestBan = (req, res, next) => {
+  Report_Request.find({ type_report: "ban", status: true })
+    .then((reportRequests) => {
+      if (!reportRequests || reportRequests.length === 0) {
+        //Not Found
+        const err = new Error(
+          `No active report request found for type: ${type_report}`
+        );
+        err.status = 404;
+        throw err;
+      }
+      res.statusCode = 200;
+      res.setHeader("Content-Type", "application/json");
+      res.json(reportRequests);
+    })
+    .catch((err) => next(err));
+};
+
 exports.getWalletRequestById = (req, res, next) => {
-    const walletRequestId = req.params.walletRequestId;
-    Wallet_Request.findById(walletRequestId)
-      .then(
-        (walletRequest) => {
-          if (walletRequest) {
-            res.statusCode = 200;
-            res.setHeader("Content-Type", "application/json");
-            res.json(walletRequest);
-          } else {
-            res.statusCode = 404;
-            res.end("Wallet Request not found");
-          }
-        },
-        (err) => next(err)
-      )
-      .catch((err) => next(err));
-  };
+  const walletRequestId = req.params.walletRequestId;
+  Report_Request.findById(walletRequestId)
+    .then(
+      (walletRequest) => {
+        if (walletRequest) {
+          res.statusCode = 200;
+          res.setHeader("Content-Type", "application/json");
+          res.json(walletRequest);
+        } else {
+          res.statusCode = 404;
+          res.end("Wallet Request not found");
+        }
+      },
+      (err) => next(err)
+    )
+    .catch((err) => next(err));
+};
 
 exports.postAddWalletRequest = (req, res, next) => {
-  Wallet_Request.create(req.body)
+  Report_Request.create(req.body)
     .then(
       (walletRequest) => {
         console.log("Product Created ", walletRequest);
@@ -56,10 +111,10 @@ exports.postAddWalletRequest = (req, res, next) => {
 };
 
 exports.putUpdateWalletRequest = (req, res, next) => {
-  Wallet_Request.findByIdAndUpdate(
+  Report_Request.findByIdAndUpdate(
     req.params.walletRequestId,
     {
-      $set: {status:false},
+      $set: { status: false },
     },
     { new: true }
   )
@@ -80,7 +135,7 @@ exports.putUpdateWalletRequest = (req, res, next) => {
 
 exports.deleteWalletRequest = (req, res, next) => {
   const walletRequestId = req.params.walletRequestId;
-  Wallet_Request.findByIdAndUpdate(
+  Report_Request.findByIdAndUpdate(
     walletRequestId,
     { $set: { status: false } },
     { new: true }

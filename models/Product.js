@@ -12,7 +12,7 @@ const productSchema = new Schema({
     required: true,
   },
   video: {
-    type: String,
+    type: Array,
     required: true,
   },
   description: {
@@ -22,6 +22,11 @@ const productSchema = new Schema({
   status: {
     type: Boolean,
     default: false,
+  },
+  host_id: {
+    type: Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
   },
   timestamp: {
     type: Date,

@@ -1,7 +1,9 @@
 const moment = require("moment");
 const schedule = require("node-schedule");
 const Auctions = require("../models/Auction");
+const Orders = require("../models/Order");
 const socketIo = require("socket.io");
+const Product = require("../models/Product");
 // Đường dẫn đến model của phiên đấu giá
 // router.post('/newAuction', async (req, res) => {
 //   try {
@@ -116,17 +118,39 @@ exports.getAllAuction = (req, res, next) => {
 };
 
 exports.createAuction = (req, res, next) => {
+  const product_id = req.body.product_id;
   Auctions.create(req.body)
     .then(
       async (auction) => {
         console.log("Auction Created ", auction);
-
+        const product = await Product.findOne({product_id});
+        product.status = true;
+        await product.save();
         // Sau khi phiên đấu giá được tạo, gọi hàm để lên lịch cập nhật trạng thái
         await scheduleAuctionStatusUpdates(auction, req.app.get("socketio"));
 
         res.statusCode = 200;
         res.setHeader("Content-Type", "application/json");
         res.json(auction);
+      },
+      (err) => next(err)
+    )
+    .catch((err) => next(err));
+};
+
+exports.getAuctionByUserId = (req, res, next) => {
+  const hostId = req.params.host_id;
+  Auctions.find({ host_id: hostId })
+    .then(
+      (user) => {
+        if (user) {
+          res.statusCode = 200;
+          res.setHeader("Content-Type", "application/json");
+          res.json(user);
+        } else {
+          res.statusCode = 404;
+          res.end("Auction not found");
+        }
       },
       (err) => next(err)
     )
@@ -299,6 +323,69 @@ exports.checkUserInAuction = (auctionId, userId) => {
         res.statusCode = 200;
         res.setHeader("Content-Type", "application/json");
         res.json(auction);
+      },
+      (err) => next(err)
+    )
+    .catch((err) => next(err));
+};
+
+exports.createOrder = (req, res, next) => {
+  Orders.create(req.body)
+    .then(
+      (order) => {
+        console.log("Order Created ", order);
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "application/json");
+        res.json(order);
+      },
+      (err) => next(err)
+    )
+    .catch((err) => next(err));
+};
+
+exports.updateOrder = (req, res, next) => {
+  Orders.findByIdAndUpdate(
+    req.params.orderId,
+    {
+      $set: req.body,
+    },
+    { new: true }
+  )
+    .then(
+      (order) => {
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "application/json");
+        res.json({
+          success: true,
+          status: "Update Successful!",
+          order: order,
+        });
+      },
+      (err) => next(err)
+    )
+    .catch((err) => next(err));
+};
+
+exports.getOrderByMemberID = (req, res, next) => {
+  Orders.find({ winner_id: req.params.memberId })
+    .then(
+      (order) => {
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "application/json");
+        res.json(order);
+      },
+      (err) => next(err)
+    )
+    .catch((err) => next(err));
+};
+
+exports.getOrderByHostID = (req, res, next) => {
+  Orders.find({ host_id: req.params.hostId })
+    .then(
+      (order) => {
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "application/json");
+        res.json(order);
       },
       (err) => next(err)
     )

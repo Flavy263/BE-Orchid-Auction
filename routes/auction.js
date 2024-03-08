@@ -28,6 +28,7 @@ router.get(
   authenticateJWT,
   auctionController.getAuctionaAuctioned
 );
+router.get("/:host_id", authenticateJWT, auctionController.getAuctionByUserId);
 router.get(
   "/not-yet/:host_id",
   authenticateJWT,
@@ -63,6 +64,14 @@ router.post(
 
 router.get("/", authenticateJWT, auctionController.getAllAuction);
 
-router.get('/auctionBid/:auctionId/:customerId', auctionController.checkUserInAuction);
+router.get(
+  "/auctionBid/:auctionId/:customerId",
+  auctionController.checkUserInAuction
+);
+
+router.post("/createOrder", authenticateJWT, auctionController.createOrder);
+router.put("/updateOrder/:orderId", authenticateJWT, auctionController.updateOrder);
+router.get("/getOrder/:memberId", authenticateJWT, auctionController.getOrderByMemberID);
+router.get("/getOrder/:hostId", authenticateJWT, auctionController.getOrderByHostID);
 
 module.exports = router;
