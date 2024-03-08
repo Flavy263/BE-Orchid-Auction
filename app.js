@@ -55,7 +55,7 @@ connect.then(
 //   optionsSuccessStatus: 204,
 // };
 const corsOptions = {
-  origin: 'http://localhost:5173',
+  origin: '*',
   methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'], // Thêm PUT, PATCH và DELETE vào đây
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
