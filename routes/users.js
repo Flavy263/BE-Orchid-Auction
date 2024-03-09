@@ -45,5 +45,5 @@ router.get("/username/:userName", userController.getUserByUsername);
 
 router.get("/role/:roleId", userController.getUserByRole);
 
-router.put("/ban-user/:userId", authenticateJWT, userController.banUserByID);
+router.post("/ban-user", authenticateJWT, userController.banUserByID);
 module.exports = router;

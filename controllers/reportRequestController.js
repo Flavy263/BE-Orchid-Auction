@@ -10,7 +10,6 @@ exports.getAllReportRequest = (req, res, next) => {
         err.status = 404; // Mã lỗi 404 - Not Found
         throw err;
       }
-
       res.statusCode = 200;
       res.setHeader("Content-Type", "application/json");
       res.json(walletRequest);
@@ -22,15 +21,14 @@ exports.getReportRequestMoney = (req, res, next) => {
   Report_Request.find({ type_report: "money", status: true })
     .populate("user_id")
     .then((reportRequests) => {
-      if (!reportRequests || reportRequests.length === 0) {
-        //Not Found
-        // const err = new Error(
-        //   `No active report request found for type: ${type_report}`
-        // );
-        // err.status = 404;
-        // throw err;
-        res.json(reportRequests);
-      }
+      // if (!reportRequests || reportRequests.length === 0) {
+      //   //Not Found
+      //   const err = new Error(
+      //     `No active report request found for type: ${type_report}`
+      //   );
+      //   err.status = 404;
+      //   throw err;
+      // }
       res.statusCode = 200;
       res.setHeader("Content-Type", "application/json");
       res.json(reportRequests);
@@ -41,15 +39,14 @@ exports.getReportRequestMoneyPaid = (req, res, next) => {
   Report_Request.find({ type_report: "money", status: false })
     .populate("user_id")
     .then((reportRequests) => {
-      if (!reportRequests || reportRequests.length === 0) {
-        //Not Found
-        // const err = new Error(
-        //   `No active report request found for type: ${type_report}`
-        // );
-        // err.status = 404;
-        // throw err;
-        res.json(reportRequests);
-      }
+      // if (!reportRequests || reportRequests.length === 0) {
+      //   //Not Found
+      //   const err = new Error(
+      //     `No active report request found for type: ${type_report}`
+      //   );
+      //   err.status = 404;
+      //   throw err;
+      // }
       res.statusCode = 200;
       res.setHeader("Content-Type", "application/json");
       res.json(reportRequests);
@@ -59,15 +56,35 @@ exports.getReportRequestMoneyPaid = (req, res, next) => {
 
 exports.getReportRequestBan = (req, res, next) => {
   Report_Request.find({ type_report: "ban", status: true })
+    .populate("user_id")
     .then((reportRequests) => {
-      if (!reportRequests || reportRequests.length === 0) {
-        //Not Found
-        const err = new Error(
-          `No active report request found for type: ${type_report}`
-        );
-        err.status = 404;
-        throw err;
-      }
+      // if (!reportRequests || reportRequests.length === 0) {
+      //   //Not Found
+      //   const err = new Error(
+      //     `No active report request found for type: ${type_report}`
+      //   );
+      //   err.status = 404;
+      //   throw err;
+      // }
+      res.statusCode = 200;
+      res.setHeader("Content-Type", "application/json");
+      res.json(reportRequests);
+    })
+    .catch((err) => next(err));
+};
+
+exports.getReportRequestAlreadyBan = (req, res, next) => {
+  Report_Request.find({ type_report: "ban", status: false })
+    .populate("user_id")
+    .then((reportRequests) => {
+      // if (!reportRequests || reportRequests.length === 0) {
+      //   //Not Found
+      //   const err = new Error(
+      //     `No active report request found for type: ${type_report}`
+      //   );
+      //   err.status = 404;
+      //   throw err;
+      // }
       res.statusCode = 200;
       res.setHeader("Content-Type", "application/json");
       res.json(reportRequests);

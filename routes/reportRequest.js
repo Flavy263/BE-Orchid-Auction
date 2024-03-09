@@ -22,7 +22,12 @@ router.get(
   authenticateJWT,
   reportRequestController.getReportRequestBan
 );
-router.post("/", authenticateJWT, reportRequestController.postAddReportRequest);
+router.get(
+  "/getByRequestAlreadyBan",
+  authenticateJWT,
+  reportRequestController.getReportRequestAlreadyBan
+);
+router.post("/", authenticateJWT, reportRequestController.postAddWalletRequest);
 router.get(
   "/:walletRequestId",
   authenticateJWT,

@@ -2,6 +2,9 @@ const Wallets = require("../models/Wallet");
 const WalletHistorys = require("../models/Wallet_History");
 const Auction = require("../models/Auction");
 const ReportRequest = require("../models/Report_Request");
+const AuctionMember = require("../models/Auction_Member");
+const User = require("../models/User");
+const Config = require("../models/Config");
 
 exports.getWallet = (req, res, next) => {
   Wallets.find({})
@@ -194,40 +197,62 @@ exports.browseDeposit = async (req, res) => {
   }
 };
 
-exports.registerJoinInAuction = async (req, res, next) => {
+const mongoose = require("mongoose");
+
+exports.registerJoinInAuction = async (req, res) => {
   try {
-    const { user_id, auction_id } = req.body;
+    const { userId, auctionId } = req.body;
 
-    // Tìm ví của người dùng
-    const wallet = await Wallet.findOne({ user_id });
-
-    if (!wallet) {
-      return res.status(404).json({ error: "Wallet not found for the user!" });
-    }
-    // Tìm phiên đấu giá dựa trên auction_id
-    const auction = await Auction.findOne({ auction_id });
-
+    // Kiểm tra xem auction có tồn tại không
+    const auction = await Auction.findById(auctionId);
     if (!auction) {
       return res.status(404).json({ error: "Auction not found!" });
     }
-
-    // Lấy giá trị starting_price từ phiên đấu giá
-    const starting_price = auction.starting_price;
-
-    // Kiểm tra xem có đủ tiền để rút không
-    if (wallet.balance < starting_price) {
+    
+    // Kiểm tra xem user có tồn tại không
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found!" });
+    }
+   
+    // Kiểm tra xem user có ví tiền không
+    const wallet = await Wallets.findOne({ user_id: userId });
+    if (!wallet) {
+      return res.status(400).json({ error: "User has no wallet!" });
+    }
+ 
+    // So sánh ví tiền của user và giá khởi điểm của auction
+    const config = await Config.findOne({ type_config: "Join in auction" });
+    if (wallet.balance < config.money) {
       return res
         .status(400)
-        .json({ error: "Not enough money to register joining in auction!" });
+        .json({ error: "Not enough money to place a bid!" });
     }
 
-    // Rút tiền từ ví
-    wallet.balance -= starting_price;
+    // Trừ tiền từ ví
+    const bidAmount = config.money; // Giả sử bidAmount bằng giá khởi điểm
+    wallet.balance -= bidAmount;
     await wallet.save();
+    
+    
+    // Ghi lịch sử vào WalletHistory
+    const walletHistory = new WalletHistorys({
+      wallet_id: wallet._id,
+      amount: bidAmount,
+      type: "withdraw",
+    });
+    await walletHistory.save();
 
-    res.status(200).json({ message: "Withdrawal successful." });
+    // Ghi user vào danh sách AuctionMember
+    const auctionMember = new AuctionMember({
+      auction_id: auctionId,
+      member_id: userId,
+    });
+    await auctionMember.save();
+
+    res.status(200).json({ message: "Bid placed successfully." });
   } catch (error) {
-    console.error("Error withdrawing money:", error);
+    console.error("Error placing bid:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
