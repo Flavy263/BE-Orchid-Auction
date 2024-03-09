@@ -6,7 +6,7 @@ const passport = require("passport");
 
 const authenticateJWT = passport.authenticate("jwt", { session: false });
 
-router.get("/", reportRequestController.getAllWalletRequest);
+router.get("/", reportRequestController.getAllReportRequest);
 router.get(
   "/getByRequestMoney",
   authenticateJWT,
@@ -22,21 +22,21 @@ router.get(
   authenticateJWT,
   reportRequestController.getReportRequestBan
 );
-router.post("/", authenticateJWT, reportRequestController.postAddWalletRequest);
+router.post("/", authenticateJWT, reportRequestController.postAddReportRequest);
 router.get(
   "/:walletRequestId",
   authenticateJWT,
-  reportRequestController.getWalletRequestById
+  reportRequestController.getReportRequestById
 );
 router.put(
   "/:walletRequestId",
   authenticateJWT,
-  reportRequestController.putUpdateWalletRequest
+  reportRequestController.putUpdateReportRequest
 );
 router.delete(
   "/:walletRequestId",
   authenticateJWT,
-  reportRequestController.deleteWalletRequest
+  reportRequestController.deleteReportRequest
 );
 
 module.exports = router;

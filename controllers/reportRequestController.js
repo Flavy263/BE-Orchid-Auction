@@ -1,7 +1,7 @@
 // crud product
 const Report_Request = require("../models/Report_Request");
 
-exports.getAllWalletRequest = (req, res, next) => {
+exports.getAllReportRequest = (req, res, next) => {
   Report_Request.find({ status: true })
     .then((walletRequest) => {
       if (!walletRequest || walletRequest.length === 0) {
@@ -73,7 +73,7 @@ exports.getReportRequestBan = (req, res, next) => {
     .catch((err) => next(err));
 };
 
-exports.getWalletRequestById = (req, res, next) => {
+exports.getReportRequestById = (req, res, next) => {
   const walletRequestId = req.params.walletRequestId;
   Report_Request.findById(walletRequestId)
     .then(
@@ -92,7 +92,7 @@ exports.getWalletRequestById = (req, res, next) => {
     .catch((err) => next(err));
 };
 
-exports.postAddWalletRequest = (req, res, next) => {
+exports.postAddReportRequest = (req, res, next) => {
   Report_Request.create(req.body)
     .then(
       (walletRequest) => {
@@ -110,7 +110,7 @@ exports.postAddWalletRequest = (req, res, next) => {
     .catch((err) => next(err));
 };
 
-exports.putUpdateWalletRequest = (req, res, next) => {
+exports.putUpdateReportRequest = (req, res, next) => {
   Report_Request.findByIdAndUpdate(
     req.params.walletRequestId,
     {
@@ -133,7 +133,7 @@ exports.putUpdateWalletRequest = (req, res, next) => {
     .catch((err) => next(err));
 };
 
-exports.deleteWalletRequest = (req, res, next) => {
+exports.deleteReportRequest = (req, res, next) => {
   const walletRequestId = req.params.walletRequestId;
   Report_Request.findByIdAndUpdate(
     walletRequestId,
