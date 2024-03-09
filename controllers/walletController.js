@@ -19,7 +19,8 @@ exports.getWallet = (req, res, next) => {
 
 exports.getWalletByUserId = (req, res, next) => {
   const user_id = req.params.userId;
-  Wallets.find({ user_id: user_id })
+  console.log("userId", user_id);
+  Wallets.findOne({ user_id})
     .then(
       (wallet) => {
         res.statusCode = 200;

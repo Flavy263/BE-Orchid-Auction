@@ -24,11 +24,12 @@ exports.getReportRequestMoney = (req, res, next) => {
     .then((reportRequests) => {
       if (!reportRequests || reportRequests.length === 0) {
         //Not Found
-        const err = new Error(
-          `No active report request found for type: ${type_report}`
-        );
-        err.status = 404;
-        throw err;
+        // const err = new Error(
+        //   `No active report request found for type: ${type_report}`
+        // );
+        // err.status = 404;
+        // throw err;
+        res.json(reportRequests);
       }
       res.statusCode = 200;
       res.setHeader("Content-Type", "application/json");
@@ -42,11 +43,12 @@ exports.getReportRequestMoneyPaid = (req, res, next) => {
     .then((reportRequests) => {
       if (!reportRequests || reportRequests.length === 0) {
         //Not Found
-        const err = new Error(
-          `No active report request found for type: ${type_report}`
-        );
-        err.status = 404;
-        throw err;
+        // const err = new Error(
+        //   `No active report request found for type: ${type_report}`
+        // );
+        // err.status = 404;
+        // throw err;
+        res.json(reportRequests);
       }
       res.statusCode = 200;
       res.setHeader("Content-Type", "application/json");

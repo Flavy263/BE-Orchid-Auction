@@ -21,7 +21,7 @@ exports.uploadVideo = async (req, res) => {
 };
 
 exports.getAllProduct = (req, res, next) => {
-  Product.find({})
+  Product.find({}).populate("host_id")
     .then((products) => {
       if (!products || products.length === 0) {
         // Nếu không có sản phẩm nào thỏa mãn điều kiện, trả về thông báo hoặc mã lỗi
