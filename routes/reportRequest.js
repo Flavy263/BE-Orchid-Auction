@@ -27,7 +27,7 @@ router.get(
   authenticateJWT,
   reportRequestController.getReportRequestAlreadyBan
 );
-router.post("/", authenticateJWT, reportRequestController.postAddWalletRequest);
+router.post("/", authenticateJWT, reportRequestController.postAddReportRequest);
 router.get(
   "/:walletRequestId",
   authenticateJWT,
