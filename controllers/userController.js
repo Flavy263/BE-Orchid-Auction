@@ -206,7 +206,7 @@ exports.fetchMe = async (req, res, next) => {
 };
 
 exports.banUserByID = async (req, res) => {
-  const userId = req.params.userId;
+  const userId = req.body.userId;
 
   try {
     // Tìm kiếm người dùng và report request
