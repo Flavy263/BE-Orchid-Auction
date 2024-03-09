@@ -18,8 +18,8 @@ exports.getWallet = (req, res, next) => {
 };
 
 exports.getWalletByUserId = (req, res, next) => {
-  const { user_id } = req.body
-  Wallets.find({ user_id : user_id })
+  const user_id = req.params.userId;
+  Wallets.find({ user_id: user_id })
     .then(
       (wallet) => {
         res.statusCode = 200;
@@ -125,7 +125,7 @@ exports.withdrawMoney = async (req, res, next) => {
     const { user_id, amount } = req.body;
 
     // Tìm ví của người dùng
-    const wallet = await Wallet.findOne({ user_id });
+    const wallet = await Wallets.findOne({ user_id });
 
     if (!wallet) {
       return res.status(404).json({ error: "Wallet not found for the user." });
@@ -156,12 +156,12 @@ exports.withdrawMoney = async (req, res, next) => {
 
 exports.browseDeposit = async (req, res) => {
   try {
-    const { reportRequestId, depositAmount } = req.body;
+    const { reportRequestId, depositAmount, note } = req.body;
 
     // Thay đổi trạng thái của reportRequest
     const updatedReport = await ReportRequest.findByIdAndUpdate(
       reportRequestId,
-      { status: false },
+      { status: false, note: note, update_timestamp: Date.now() },
       { new: true }
     );
 

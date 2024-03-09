@@ -104,7 +104,7 @@ function scheduleAuctionStatusUpdates(auction, io) {
 }
 exports.getAllAuction = (req, res, next) => {
   Auctions.find()
-    .populate("host_id", "fullName")
+    .populate("host_id")
     .populate("product_id")
     .then(
       (auction) => {
@@ -123,7 +123,7 @@ exports.createAuction = (req, res, next) => {
     .then(
       async (auction) => {
         console.log("Auction Created ", auction);
-        const product = await Product.findOne({product_id});
+        const product = await Product.findOne({ product_id });
         product.status = true;
         await product.save();
         // Sau khi phiên đấu giá được tạo, gọi hàm để lên lịch cập nhật trạng thái
@@ -140,7 +140,7 @@ exports.createAuction = (req, res, next) => {
 
 exports.getAuctionByUserId = (req, res, next) => {
   const hostId = req.params.host_id;
-  Product.find({ host_id: hostId })
+  Auctions.find({ host_id: hostId })
     .then(
       (user) => {
         if (user) {
@@ -264,6 +264,8 @@ exports.deleteAuctionByID = (req, res, next) => {
 };
 exports.getAuctionNotYetAuctioned = (req, res, next) => {
   Auctions.find({ status: "not yet auctioned" })
+    .populate("host_id", "fullName")
+    .populate("product_id", "name")
     .then(
       (auction) => {
         res.statusCode = 200;
@@ -277,6 +279,8 @@ exports.getAuctionNotYetAuctioned = (req, res, next) => {
 
 exports.getAuctionAboutToAuction = (req, res, next) => {
   Auctions.find({ status: "about to auction" })
+    .populate("host_id", "fullName")
+    .populate("product_id", "name")
     .then(
       (auction) => {
         res.statusCode = 200;
@@ -290,6 +294,8 @@ exports.getAuctionAboutToAuction = (req, res, next) => {
 
 exports.getAuctionAuctioning = (req, res, next) => {
   Auctions.find({ status: "auctioning" })
+    .populate("host_id", "fullName")
+    .populate("product_id", "name")
     .then(
       (auction) => {
         res.statusCode = 200;
@@ -303,6 +309,8 @@ exports.getAuctionAuctioning = (req, res, next) => {
 
 exports.getAuctionaAuctioned = (req, res, next) => {
   Auctions.find({ status: "auctioned" })
+    .populate("host_id", "fullName")
+    .populate("product_id", "name")
     .then(
       (auction) => {
         res.statusCode = 200;

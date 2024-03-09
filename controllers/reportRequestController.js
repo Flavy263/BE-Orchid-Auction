@@ -18,13 +18,52 @@ exports.getAllWalletRequest = (req, res, next) => {
     .catch((err) => next(err));
 };
 
-exports.getReportRequestsByType = (req, res, next) => {
-  const { type_report } = req.body;
-  Report_Request.find({ type_report, status: true })
+exports.getReportRequestMoney = (req, res, next) => {
+  Report_Request.find({ type_report: "money", status: true })
+    .populate("user_id")
     .then((reportRequests) => {
-      if (!reportRequests || reportRequests.length === 0) {//Not Found
-        const err = new Error(`No active report request found for type: ${type_report}`);
-        err.status = 404; 
+      if (!reportRequests || reportRequests.length === 0) {
+        //Not Found
+        const err = new Error(
+          `No active report request found for type: ${type_report}`
+        );
+        err.status = 404;
+        throw err;
+      }
+      res.statusCode = 200;
+      res.setHeader("Content-Type", "application/json");
+      res.json(reportRequests);
+    })
+    .catch((err) => next(err));
+};
+exports.getReportRequestMoneyPaid = (req, res, next) => {
+  Report_Request.find({ type_report: "money", status: false })
+    .populate("user_id")
+    .then((reportRequests) => {
+      if (!reportRequests || reportRequests.length === 0) {
+        //Not Found
+        const err = new Error(
+          `No active report request found for type: ${type_report}`
+        );
+        err.status = 404;
+        throw err;
+      }
+      res.statusCode = 200;
+      res.setHeader("Content-Type", "application/json");
+      res.json(reportRequests);
+    })
+    .catch((err) => next(err));
+};
+
+exports.getReportRequestBan = (req, res, next) => {
+  Report_Request.find({ type_report: "ban", status: true })
+    .then((reportRequests) => {
+      if (!reportRequests || reportRequests.length === 0) {
+        //Not Found
+        const err = new Error(
+          `No active report request found for type: ${type_report}`
+        );
+        err.status = 404;
         throw err;
       }
       res.statusCode = 200;
@@ -35,23 +74,23 @@ exports.getReportRequestsByType = (req, res, next) => {
 };
 
 exports.getWalletRequestById = (req, res, next) => {
-    const walletRequestId = req.params.walletRequestId;
-    Report_Request.findById(walletRequestId)
-      .then(
-        (walletRequest) => {
-          if (walletRequest) {
-            res.statusCode = 200;
-            res.setHeader("Content-Type", "application/json");
-            res.json(walletRequest);
-          } else {
-            res.statusCode = 404;
-            res.end("Wallet Request not found");
-          }
-        },
-        (err) => next(err)
-      )
-      .catch((err) => next(err));
-  };
+  const walletRequestId = req.params.walletRequestId;
+  Report_Request.findById(walletRequestId)
+    .then(
+      (walletRequest) => {
+        if (walletRequest) {
+          res.statusCode = 200;
+          res.setHeader("Content-Type", "application/json");
+          res.json(walletRequest);
+        } else {
+          res.statusCode = 404;
+          res.end("Wallet Request not found");
+        }
+      },
+      (err) => next(err)
+    )
+    .catch((err) => next(err));
+};
 
 exports.postAddWalletRequest = (req, res, next) => {
   Report_Request.create(req.body)
@@ -75,7 +114,7 @@ exports.putUpdateWalletRequest = (req, res, next) => {
   Report_Request.findByIdAndUpdate(
     req.params.walletRequestId,
     {
-      $set: {status:false},
+      $set: { status: false },
     },
     { new: true }
   )
