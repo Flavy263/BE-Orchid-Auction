@@ -198,3 +198,26 @@ exports.fetchMe = async (req, res, next) => {
     res.status(500).json({ success: false, message: 'Internal server error.' });
   }
 };
+
+exports.banUserByID = (req, res, next) => {
+  User.findByIdAndUpdate(
+    req.params.userId,
+    {
+      $set: { status: false },
+    },
+    { new: true }
+  )
+    .then(
+      (user) => {
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "application/json");
+        res.json({
+          success: true,
+          status: "Update Successful!",
+          user: user,
+        });
+      },
+      (err) => next(err)
+    )
+    .catch((err) => next(err));
+};
