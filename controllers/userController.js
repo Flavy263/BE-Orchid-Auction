@@ -1,4 +1,5 @@
 const User = require("../models/User");
+const Wallet = require("../models/Wallet");
 const passport = require("passport");
 const bcrypt = require("bcrypt");
 const authenticate = require("../authenticate");
@@ -103,51 +104,45 @@ exports.getUserByRole = async (req, res, next) => {
   }
 };
 
-exports.postAddUser = (req, res, next) => {
-  // Check if there is an image file uploaded
-  if (!req.file) {
-    return res.status(400).json({ success: false, message: 'No image uploaded.' });
-  }
-  // Get the Cloudinary image URL
-  const imageUrl = req.file.path;
-
-  bcrypt.hash(req.body.password, 10, (err, hash) => {
-    if (err) {
-      return res
-        .status(500)
-        .json({ success: false, message: "Could not create hash!" });
+exports.postAddUser = async (req, res, next) => {
+  try {
+    // Check if there is an image file uploaded
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'No image uploaded.' });
     }
 
-    User.register(
-      new User({
-        username: req.body.username,
-        password: hash,
-        email: req.body.email,
-        image: imageUrl,
-        gender: req.body.gender,
-        address: req.body.address,
-        fullName: req.body.fullName,
-        status: req.body.status,
-        phone: req.body.phone,
-        role_id: req.body.role_id,
-      }),
-      hash,
-      (err, user) => {
-        // console.log("req",req);
-        if (err) {
-          res.statusCode = 500;
-          res.setHeader("Content-Type", "application/json");
-          res.json({ err: err });
-        } else {
-          // passport.authenticate('local')(req, res, () => {
-          res.statusCode = 200;
-          res.setHeader("Content-Type", "application/json");
-          res.json({ success: true, status: "Registration Successful!" });
-          // });
-        }
-      }
-    );
-  });
+    // Get the Cloudinary image URL
+    const imageUrl = req.file.path;
+
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(req.body.password, 10);
+
+    // Create the user
+    const user = await User.create({
+      username: req.body.username,
+      password: hashedPassword,
+      email: req.body.email,
+      image: imageUrl,
+      gender: req.body.gender,
+      address: req.body.address,
+      fullName: req.body.fullName,
+      status: req.body.status,
+      phone: req.body.phone,
+      role_id: req.body.role_id,
+    });
+
+    // Create the wallet for the user
+    await Wallet.create({
+      user_id: user._id,
+      balance: 0,
+    });
+
+    // Return success response
+    res.status(200).json({ success: true, status: 'Registration Successful!' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
 };
 
 exports.postLoginUser = async (req, res, next) => {
