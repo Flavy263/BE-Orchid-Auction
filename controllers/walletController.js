@@ -221,7 +221,7 @@ exports.registerJoinInAuction = async (req, res) => {
     }
  
     // So sánh ví tiền của user và giá khởi điểm của auction
-    const config = await Config.findOne({ type_config: "Join in Auction" });
+    const config = await Config.findOne({ type_config: "Join in auction" });
     if (wallet.balance < config.money) {
       return res
         .status(400)
