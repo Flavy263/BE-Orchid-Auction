@@ -35,7 +35,7 @@ const userSchema = new Schema(
       required: true,
     },
     status: {
-      type: String,
+      type: Boolean,
       default: true,
     },
     password: {
