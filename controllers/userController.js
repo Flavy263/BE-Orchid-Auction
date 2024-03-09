@@ -206,12 +206,12 @@ exports.fetchMe = async (req, res, next) => {
 };
 
 exports.banUserByID = async (req, res) => {
-  const userId = req.params.userId;
+  const userId = req.body.userId;
 
   try {
     // Tìm kiếm người dùng và report request
     const user = await User.findById(userId);
-    const reportRequest = await ReportRequest.findOne({ user_id: userId });
+    const reportRequest = await ReportRequest.find({ user_id: userId });
 
     // Kiểm tra xem người dùng và report request có tồn tại hay không
     if (!user || !reportRequest) {
