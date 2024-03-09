@@ -77,28 +77,32 @@ function scheduleAuctionStatusUpdates(auction, io) {
     regitration_start_time,
     regitration_end_time,
   } = auction;
-  const startTime = moment(start_time).format("YYYY-MM-DD HH:mm:ss");
-  const endTime = moment(end_time).format("YYYY-MM-DD HH:mm:ss");
-  const regitrationStartTime = moment(regitration_start_time).format(
-    "YYYY-MM-DD HH:mm:ss"
-  );
-  const regitrationEndTime = moment(regitration_end_time).format(
-    "YYYY-MM-DD HH:mm:ss"
-  );
+  // const startTime = moment(start_time).format("YYYY-MM-DD HH:mm:ss");
+  // const endTime = moment(end_time).format("YYYY-MM-DD HH:mm:ss");
+  // const regitrationStartTime = moment(regitration_start_time).format(
+  //   "YYYY-MM-DD HH:mm:ss"
+  // );
+  // const regitrationEndTime = moment(regitration_end_time).format(
+  //   "YYYY-MM-DD HH:mm:ss"
+  // );
+  const startTime = moment(start_time, "YYYY-MM-DDTHH:mm:ssZ").toDate();
+  const endTime = moment(end_time, "YYYY-MM-DDTHH:mm:ssZ").toDate();
+  const regitrationStartTime = moment(regitration_start_time, "YYYY-MM-DDTHH:mm:ssZ").toDate();
+  const regitrationEndTime = moment(regitration_end_time, "YYYY-MM-DDTHH:mm:ssZ").toDate();
   // Kiểm tra và cập nhật trạng thái khi qua mốc thời gian
-  schedule.scheduleJob(startTime, async () => {
+  schedule.scheduleJob(regitrationStartTime, async () => {
     await updateAuctionStatus(_id, "not yet auctioned", io);
   });
 
-  schedule.scheduleJob(endTime, async () => {
+  schedule.scheduleJob(regitrationEndTime, async () => {
     await updateAuctionStatus(_id, "about to auction", io);
   });
 
-  schedule.scheduleJob(regitrationStartTime, async () => {
+  schedule.scheduleJob(startTime, async () => {
     await updateAuctionStatus(_id, "auctioning", io);
   });
 
-  schedule.scheduleJob(regitrationEndTime, async () => {
+  schedule.scheduleJob(endTime, async () => {
     await updateAuctionStatus(_id, "auctioned", io);
   });
 }
