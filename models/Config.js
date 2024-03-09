@@ -8,6 +8,7 @@ const configSchema = new Schema(
       type: String,
       required: true,
     },
+    //"Join in auction" - "Register auction"
     description: {
       type: String,
       required: true,
