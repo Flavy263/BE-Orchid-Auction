@@ -9,12 +9,13 @@ const cloudinary = require('cloudinary').v2;
 const multer = require('multer');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const config = require('../config'); // Import file chứa thông tin cấu hình
-
+console.log("A0");
 cloudinary.config({
     cloud_name: config.CLOUDINARY_CLOUD_NAME,
     api_key: config.CLOUDINARY_API_KEY,
     api_secret: config.CLOUDINARY_API_SECRET,
 });
+
 
 const storageVideo = new CloudinaryStorage({
     cloudinary: cloudinary,
@@ -56,3 +57,9 @@ router.delete("/:productId", authenticateJWT, productController.deleteProduct);
 // router.post("/login", userController.postLoginUser);
 
 module.exports = router;
+
+
+
+
+
+
