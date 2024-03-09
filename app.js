@@ -11,6 +11,7 @@ const productRouter = require("./routes/product");
 const auctionRouter = require("./routes/auction");
 const walletRouter = require("./routes/wallet");
 const ReportRequestRouter = require("./routes/reportRequest");
+const ConfigRouter = require("./routes/config");
 const cors = require("cors");
 var app = express();
 const mongoose = require("mongoose");
@@ -93,6 +94,7 @@ app.use("/products", productRouter);
 app.use("/auctions", auctionRouter);
 app.use("/wallets", walletRouter);
 app.use("/report_requests", ReportRequestRouter);
+app.use("/configs", ConfigRouter);
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
   next(createError(404));
