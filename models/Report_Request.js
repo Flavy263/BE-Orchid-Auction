@@ -14,10 +14,9 @@ const reportRequestSchema = new Schema({
   },
   description: {
     type: String,
-    required: true,
   },
   note: {
-    type: String,
+    type: String
   },
   status: {
     type: Boolean,
