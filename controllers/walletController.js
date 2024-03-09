@@ -18,7 +18,7 @@ exports.getWallet = (req, res, next) => {
 };
 
 exports.getWalletByUserId = (req, res, next) => {
-  const { user_id } = req.body;
+  const user_id = req.params.userId;
   Wallets.find({ user_id: user_id })
     .then(
       (wallet) => {

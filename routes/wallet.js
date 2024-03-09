@@ -7,7 +7,7 @@ const passport = require("passport");
 const authenticateJWT = passport.authenticate("jwt", { session: false });
 
 router.get("/", authenticateJWT, walletController.getWallet);
-router.get("/getByUserId", authenticateJWT, walletController.getWalletByUserId);
+router.get("/getWalletByUserId/:userId", authenticateJWT, walletController.getWalletByUserId);
 router.post("/", authenticateJWT, walletController.createWallet);
 router.post("/deposit", authenticateJWT, walletController.addMoney);
 router.post("/browse-deposit", authenticateJWT, walletController.browseDeposit);
