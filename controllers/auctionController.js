@@ -117,25 +117,37 @@ exports.getAllAuction = (req, res, next) => {
     .catch((err) => next(err));
 };
 
-exports.createAuction = (req, res, next) => {
-  const product_id = req.body.product_id;
-  Auctions.create(req.body)
-    .then(
-      async (auction) => {
-        console.log("Auction Created ", auction);
-        const product = await Product.findOne({ product_id });
-        product.status = true;
-        await product.save();
-        // Sau khi phiên đấu giá được tạo, gọi hàm để lên lịch cập nhật trạng thái
-        await scheduleAuctionStatusUpdates(auction, req.app.get("socketio"));
 
-        res.statusCode = 200;
-        res.setHeader("Content-Type", "application/json");
-        res.json(auction);
-      },
-      (err) => next(err)
-    )
-    .catch((err) => next(err));
+exports.createAuction = async (req, res, next) => {
+  try {
+    const product_id = req.body.product_id;
+    const auction = await Auctions.create(req.body);
+
+    console.log("Auction Created ", auction);
+
+    // Tìm và cập nhật trạng thái sản phẩm
+    const updatedProduct = await Product.findOneAndUpdate(
+      { _id: product_id },
+      { $set: { status: true } },
+      { new: true }
+    );
+
+    // Kiểm tra xem sản phẩm có tồn tại và được cập nhật không
+    if (updatedProduct) {
+      // Sau khi phiên đấu giá được tạo, gọi hàm để lên lịch cập nhật trạng thái
+      await scheduleAuctionStatusUpdates(auction, req.app.get("socketio"));
+
+      res.statusCode = 200;
+      res.setHeader("Content-Type", "application/json");
+      res.json(auction);
+    } else {
+      res.statusCode = 404;
+      res.setHeader("Content-Type", "application/json");
+      res.json({ success: false, message: "Product not found or not updated." });
+    }
+  } catch (err) {
+    next(err);
+  }
 };
 
 exports.getAuctionByUserId = (req, res, next) => {

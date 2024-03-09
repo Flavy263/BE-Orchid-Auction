@@ -16,6 +16,7 @@ cloudinary.config({
     api_secret: config.CLOUDINARY_API_SECRET,
 });
 
+
 const storageVideo = new CloudinaryStorage({
     cloudinary: cloudinary,
     params: {
@@ -56,3 +57,9 @@ router.delete("/:productId", authenticateJWT, productController.deleteProduct);
 // router.post("/login", userController.postLoginUser);
 
 module.exports = router;
+
+
+
+
+
+

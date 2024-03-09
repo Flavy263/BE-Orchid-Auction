@@ -2,12 +2,13 @@ const User = require("../models/User");
 const passport = require("passport");
 const bcrypt = require("bcrypt");
 const authenticate = require("../authenticate");
+const ReportRequest = require("../models/Report_Request");
 
 exports.uploadImg = async (req, res) => {
   try {
     // Kiểm tra xem có file ảnh được tải lên hay không
     if (!req.file) {
-      return res.status(400).json({ error: 'No image uploaded.' });
+      return res.status(400).json({ error: "No image uploaded." });
     }
 
     // Sử dụng thông tin từ đối tượng result trực tiếp
@@ -16,8 +17,8 @@ exports.uploadImg = async (req, res) => {
     // Trả về URL của ảnh trên Cloudinary
     res.status(200).json({ imageUrl });
   } catch (error) {
-    console.error('Error uploading image:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error("Error uploading image:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
@@ -73,7 +74,6 @@ exports.getUserByUsername = (req, res, next) => {
     .catch((err) => next(err));
 };
 
-
 exports.getUserByRole = async (req, res, next) => {
   try {
     const roleDescription = req.params.roleDescription;
@@ -84,7 +84,9 @@ exports.getUserByRole = async (req, res, next) => {
     });
 
     if (!role) {
-      res.status(404).json({ error: 'No role found with the specified description' });
+      res
+        .status(404)
+        .json({ error: "No role found with the specified description" });
       return;
     }
 
@@ -96,7 +98,7 @@ exports.getUserByRole = async (req, res, next) => {
     if (users && users.length > 0) {
       res.status(200).json(users);
     } else {
-      res.status(404).json({ error: 'No users found with the specified role' });
+      res.status(404).json({ error: "No users found with the specified role" });
     }
   } catch (error) {
     next(error);
@@ -106,7 +108,9 @@ exports.getUserByRole = async (req, res, next) => {
 exports.postAddUser = (req, res, next) => {
   // Check if there is an image file uploaded
   if (!req.file) {
-    return res.status(400).json({ success: false, message: 'No image uploaded.' });
+    return res
+      .status(400)
+      .json({ success: false, message: "No image uploaded." });
   }
   // Get the Cloudinary image URL
   const imageUrl = req.file.path;
@@ -154,7 +158,7 @@ exports.postLoginUser = async (req, res, next) => {
   try {
     const { username, password } = req.body;
 
-    const user = await User.findOne({ username }).populate('role_id');
+    const user = await User.findOne({ username }).populate("role_id");
 
     if (!user) {
       return res.status(401).json({
@@ -188,36 +192,45 @@ exports.postLoginUser = async (req, res, next) => {
 exports.fetchMe = async (req, res, next) => {
   const userId = req.decoded._id;
   try {
-    const user = await User.findById(userId).populate('role_id');
+    const user = await User.findById(userId).populate("role_id");
     if (!user) {
-      return res.status(404).json({ success: false, message: 'User not found.' });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found." });
     }
     res.status(200).json({ success: true, user: user });
   } catch (err) {
-    console.error('Error finding user:', err);
-    res.status(500).json({ success: false, message: 'Internal server error.' });
+    console.error("Error finding user:", err);
+    res.status(500).json({ success: false, message: "Internal server error." });
   }
 };
 
-exports.banUserByID = (req, res, next) => {
-  User.findByIdAndUpdate(
-    req.params.userId,
-    {
-      $set: { status: false },
-    },
-    { new: true }
-  )
-    .then(
-      (user) => {
-        res.statusCode = 200;
-        res.setHeader("Content-Type", "application/json");
-        res.json({
-          success: true,
-          status: "Update Successful!",
-          user: user,
-        });
-      },
-      (err) => next(err)
-    )
-    .catch((err) => next(err));
+exports.banUserByID = async (req, res) => {
+  const userId = req.params.userId;
+
+  try {
+    // Tìm kiếm người dùng và report request
+    const user = await User.findById(userId);
+    const reportRequest = await ReportRequest.findOne({ user_id: userId });
+
+    // Kiểm tra xem người dùng và report request có tồn tại hay không
+    if (!user || !reportRequest) {
+      return res
+        .status(404)
+        .json({ error: "User or report request not found." });
+    }
+
+    // Cập nhật trạng thái của người dùng và report request thành false
+    user.status = false;
+    reportRequest.status = false;
+
+    // Lưu các thay đổi vào cơ sở dữ liệu
+    await user.save();
+    await reportRequest.save();
+
+    res.status(200).json({ message: "User banned successfully." });
+  } catch (error) {
+    console.error("Error banning user:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 };
