@@ -4,6 +4,11 @@ const Auctions = require("../models/Auction");
 const Orders = require("../models/Order");
 const socketIo = require("socket.io");
 const Product = require("../models/Product");
+const Wallets = require("../models/Wallet");
+const WalletHistorys = require("../models/Wallet_History");
+const Config = require("../models/Config");
+
+
 // Đường dẫn đến model của phiên đấu giá
 // router.post('/newAuction', async (req, res) => {
 //   try {
@@ -77,28 +82,38 @@ function scheduleAuctionStatusUpdates(auction, io) {
     regitration_start_time,
     regitration_end_time,
   } = auction;
-  const startTime = moment(start_time).format("YYYY-MM-DD HH:mm:ss");
-  const endTime = moment(end_time).format("YYYY-MM-DD HH:mm:ss");
-  const regitrationStartTime = moment(regitration_start_time).format(
-    "YYYY-MM-DD HH:mm:ss"
-  );
-  const regitrationEndTime = moment(regitration_end_time).format(
-    "YYYY-MM-DD HH:mm:ss"
-  );
+  // const startTime = moment(start_time).format("YYYY-MM-DD HH:mm:ss");
+  // const endTime = moment(end_time).format("YYYY-MM-DD HH:mm:ss");
+  // const regitrationStartTime = moment(regitration_start_time).format(
+  //   "YYYY-MM-DD HH:mm:ss"
+  // );
+  // const regitrationEndTime = moment(regitration_end_time).format(
+  //   "YYYY-MM-DD HH:mm:ss"
+  // );
+  const startTime = moment(start_time, "YYYY-MM-DDTHH:mm:ssZ").toDate();
+  const endTime = moment(end_time, "YYYY-MM-DDTHH:mm:ssZ").toDate();
+  const regitrationStartTime = moment(
+    regitration_start_time,
+    "YYYY-MM-DDTHH:mm:ssZ"
+  ).toDate();
+  const regitrationEndTime = moment(
+    regitration_end_time,
+    "YYYY-MM-DDTHH:mm:ssZ"
+  ).toDate();
   // Kiểm tra và cập nhật trạng thái khi qua mốc thời gian
-  schedule.scheduleJob(startTime, async () => {
+  schedule.scheduleJob(regitrationStartTime, async () => {
     await updateAuctionStatus(_id, "not yet auctioned", io);
   });
 
-  schedule.scheduleJob(endTime, async () => {
+  schedule.scheduleJob(regitrationEndTime, async () => {
     await updateAuctionStatus(_id, "about to auction", io);
   });
 
-  schedule.scheduleJob(regitrationStartTime, async () => {
+  schedule.scheduleJob(startTime, async () => {
     await updateAuctionStatus(_id, "auctioning", io);
   });
 
-  schedule.scheduleJob(regitrationEndTime, async () => {
+  schedule.scheduleJob(endTime, async () => {
     await updateAuctionStatus(_id, "auctioned", io);
   });
 }
@@ -117,10 +132,34 @@ exports.getAllAuction = (req, res, next) => {
     .catch((err) => next(err));
 };
 
-
 exports.createAuction = async (req, res, next) => {
   try {
     const product_id = req.body.product_id;
+
+    const wallet = await Wallets.findOne({ user_id: req.body.host_id });
+    if (!wallet) {
+      return res.status(400).json({ error: "User has no wallet!" });
+    }
+    const config = await Config.findOne({ type_config: "Create auction" });
+    console.log(config.money); 
+    if (wallet.balance < config.money) {
+      return res
+        .status(400)
+        .json({ error: "Not enough money to place a bid!" });
+    }
+
+    // Trừ tiền từ ví
+    const bidAmount = config.money; // Giả sử bidAmount bằng giá khởi điểm
+    wallet.balance -= bidAmount;
+    await wallet.save();
+    
+    // Ghi lịch sử vào WalletHistory
+    const walletHistory = new WalletHistorys({
+      wallet_id: wallet._id,
+      amount: bidAmount,
+      type: "withdraw",
+    });
+    await walletHistory.save();
     const auction = await Auctions.create(req.body);
 
     console.log("Auction Created ", auction);
@@ -143,7 +182,10 @@ exports.createAuction = async (req, res, next) => {
     } else {
       res.statusCode = 404;
       res.setHeader("Content-Type", "application/json");
-      res.json({ success: false, message: "Product not found or not updated." });
+      res.json({
+        success: false,
+        message: "Product not found or not updated.",
+      });
     }
   } catch (err) {
     next(err);
@@ -410,4 +452,191 @@ exports.getOrderByHostID = (req, res, next) => {
       (err) => next(err)
     )
     .catch((err) => next(err));
+};
+
+exports.checkAuctionParticipation = async (req, res) => {
+  try {
+    const auctionId = req.params.auctionId;
+    const memberId = req.params.memberId;
+
+    // Kiểm tra xem thành viên đã tham gia đấu giá chưa
+    const participation = await AuctionMember.findOne({
+      auction_id: auctionId,
+      member_id: memberId,
+    });
+    if (participation) {
+      return res
+        .status(400)
+        .json({ message: "Bạn đã tham gia đấu giá này rồi." });
+    }
+
+    return res.status(200).json({ message: "Bạn chưa tham gia đấu giá này." });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+exports.getMemberAuctionNotYet = async (req, res) => {
+  try {
+    const memberId = req.params.memberId;
+
+    // Tìm tất cả các đấu giá mà thành viên đã đăng ký
+    const registeredAuctions = await AuctionMember.find({
+      member_id: memberId,
+    }).populate("auction_id");
+
+    // Lọc các đấu giá theo status
+    const filteredAuctions = registeredAuctions.filter((auctionMember) => {
+      const auctionStatus = auctionMember.auction_id.status;
+      // Điều kiện lọc theo status, bạn có thể thay đổi tùy theo yêu cầu
+      return auctionStatus === "not yet auctioned";
+    });
+
+    // Tạo một mảng chứa thông tin cần thiết từ các đấu giá
+    const resultAuctions = filteredAuctions.map((auctionMember) => {
+      const auction = auctionMember.auction_id;
+      return {
+        auction_id: auction._id,
+        price_step: auction.price_step,
+        starting_price: auction.starting_price,
+        auctionInfo: auction.auctionInfo,
+        start_time: auction.start_time,
+        end_time: auction.end_time,
+        registration_start_time: auction.registration_start_time,
+        registration_end_time: auction.registration_end_time,
+        status: auction.status,
+        host_id: auction.host_id,
+        product_id: auction.product_id,
+      };
+    });
+
+    res.status(200).json(resultAuctions);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.getMemberAuctionAboutTo = async (req, res) => {
+  try {
+    const memberId = req.params.memberId;
+
+    // Tìm tất cả các đấu giá mà thành viên đã đăng ký
+    const registeredAuctions = await AuctionMember.find({
+      member_id: memberId,
+    }).populate("auction_id");
+
+    // Lọc các đấu giá theo status
+    const filteredAuctions = registeredAuctions.filter((auctionMember) => {
+      const auctionStatus = auctionMember.auction_id.status;
+      // Điều kiện lọc theo status, bạn có thể thay đổi tùy theo yêu cầu
+      return auctionStatus === "about to auction";
+    });
+
+    // Tạo một mảng chứa thông tin cần thiết từ các đấu giá
+    const resultAuctions = filteredAuctions.map((auctionMember) => {
+      const auction = auctionMember.auction_id;
+      return {
+        auction_id: auction._id,
+        price_step: auction.price_step,
+        starting_price: auction.starting_price,
+        auctionInfo: auction.auctionInfo,
+        start_time: auction.start_time,
+        end_time: auction.end_time,
+        registration_start_time: auction.registration_start_time,
+        registration_end_time: auction.registration_end_time,
+        status: auction.status,
+        host_id: auction.host_id,
+        product_id: auction.product_id,
+      };
+    });
+
+    res.status(200).json(resultAuctions);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.getMemberAuctionAuctioning = async (req, res) => {
+  try {
+    const memberId = req.params.memberId;
+
+    // Tìm tất cả các đấu giá mà thành viên đã đăng ký
+    const registeredAuctions = await AuctionMember.find({
+      member_id: memberId,
+    }).populate("auction_id");
+
+    // Lọc các đấu giá theo status
+    const filteredAuctions = registeredAuctions.filter((auctionMember) => {
+      const auctionStatus = auctionMember.auction_id.status;
+      // Điều kiện lọc theo status, bạn có thể thay đổi tùy theo yêu cầu
+      return auctionStatus === "auctioning";
+    });
+
+    // Tạo một mảng chứa thông tin cần thiết từ các đấu giá
+    const resultAuctions = filteredAuctions.map((auctionMember) => {
+      const auction = auctionMember.auction_id;
+      return {
+        auction_id: auction._id,
+        price_step: auction.price_step,
+        starting_price: auction.starting_price,
+        auctionInfo: auction.auctionInfo,
+        start_time: auction.start_time,
+        end_time: auction.end_time,
+        registration_start_time: auction.registration_start_time,
+        registration_end_time: auction.registration_end_time,
+        status: auction.status,
+        host_id: auction.host_id,
+        product_id: auction.product_id,
+      };
+    });
+
+    res.status(200).json(resultAuctions);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.getMemberAuctionAuctioned = async (req, res) => {
+  try {
+    const memberId = req.params.memberId;
+
+    // Tìm tất cả các đấu giá mà thành viên đã đăng ký
+    const registeredAuctions = await AuctionMember.find({
+      member_id: memberId,
+    }).populate("auction_id");
+
+    // Lọc các đấu giá theo status
+    const filteredAuctions = registeredAuctions.filter((auctionMember) => {
+      const auctionStatus = auctionMember.auction_id.status;
+      // Điều kiện lọc theo status, bạn có thể thay đổi tùy theo yêu cầu
+      return auctionStatus === "auctioned";
+    });
+
+    // Tạo một mảng chứa thông tin cần thiết từ các đấu giá
+    const resultAuctions = filteredAuctions.map((auctionMember) => {
+      const auction = auctionMember.auction_id;
+      return {
+        auction_id: auction._id,
+        price_step: auction.price_step,
+        starting_price: auction.starting_price,
+        auctionInfo: auction.auctionInfo,
+        start_time: auction.start_time,
+        end_time: auction.end_time,
+        registration_start_time: auction.registration_start_time,
+        registration_end_time: auction.registration_end_time,
+        status: auction.status,
+        host_id: auction.host_id,
+        product_id: auction.product_id,
+      };
+    });
+
+    res.status(200).json(resultAuctions);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 };
