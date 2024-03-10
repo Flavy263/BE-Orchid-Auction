@@ -199,31 +199,29 @@ exports.fetchMe = async (req, res, next) => {
 };
 
 exports.banUserByID = async (req, res) => {
-  const userId = req.body.userId;
-
   try {
-    // Tìm kiếm người dùng và report request
-    const user = await User.findById(userId);
-    const reportRequest = await ReportRequest.findOne({ user_id: userId });
+    const userId = req.params.userId;
 
-    // Kiểm tra xem người dùng và report request có tồn tại hay không
-    if (!user || !reportRequest) {
-      return res
-        .status(404)
-        .json({ error: "User or report request not found." });
+    // Kiểm tra xem user có tồn tại không
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
 
-    // Cập nhật trạng thái của người dùng và report request thành false
+    // Thay đổi status của user
     user.status = false;
-    reportRequest.status = false;
-
-    // Lưu các thay đổi vào cơ sở dữ liệu
     await user.save();
-    await reportRequest.save();
 
-    res.status(200).json({ message: "User banned successfully." });
+    // Tạo hoặc cập nhật report_request
+    const reportRequest = await ReportRequest.findOneAndUpdate(
+      { user_id: userId, type_report: "ban" },
+      { $set: { status: false, update_timestamp: Date.now() } },
+      { upsert: true, new: true }
+    );
+
+    return res.status(200).json({ message: "User banned successfully" });
   } catch (error) {
-    console.error("Error banning user:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+    console.error(error);
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
