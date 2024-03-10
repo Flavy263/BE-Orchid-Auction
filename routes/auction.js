@@ -75,4 +75,28 @@ router.get("/getOrder/:memberId", authenticateJWT, auctionController.getOrderByM
 router.get("/getOrder/:hostId", authenticateJWT, auctionController.getOrderByHostID);
 router.get("/checkAuctionParticipation/:auctionId/:memberId", authenticateJWT, auctionController.checkAuctionParticipation);
 
+router.get(
+  "/memberAuctions-not-yet/:memberId",
+  authenticateJWT,
+  auctionController.getMemberAuctionNotYet
+);
+
+router.get(
+  "/memberAuctions-about-to/:memberId",
+  authenticateJWT,
+  auctionController.getMemberAuctionAboutTo
+);
+
+router.get(
+  "/memberAuctions-auctioning/:memberId",
+  authenticateJWT,
+  auctionController.getMemberAuctionAuctioning
+);
+
+router.get(
+  "/memberAuctions-autioned/:memberId",
+  authenticateJWT,
+  auctionController.getMemberAuctionAuctioned
+);
+
 module.exports = router;
