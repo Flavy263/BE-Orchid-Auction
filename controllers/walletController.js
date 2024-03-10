@@ -221,6 +221,16 @@ exports.registerJoinInAuction = async (req, res) => {
       return res.status(400).json({ error: "User has no wallet!" });
     }
  
+    // Kiểm tra xem member có đăng ký chưa
+    const participation = await AuctionMember.findOne({
+      auction_id: auctionId,
+      member_id: userId,
+    });
+
+    if (participation) {
+      return res.status(400).json({ message: "You have entered this auction!" });
+    }
+
     // So sánh ví tiền của user và giá khởi điểm của auction
     const config = await Config.findOne({ type_config: "Join in auction" });
     console.log(config.money); 
@@ -244,15 +254,6 @@ exports.registerJoinInAuction = async (req, res) => {
     await walletHistory.save();
 
     // Ghi user vào danh sách AuctionMember
-    const participation = await AuctionMember.findOne({
-      auction_id: auctionId,
-      member_id: userId,
-    });
-
-    if (participation) {
-      return res.status(400).json({ message: "You have entered this auction!" });
-    }
-
     const auctionMember = new AuctionMember({
       auction_id: auctionId,
       member_id: userId,

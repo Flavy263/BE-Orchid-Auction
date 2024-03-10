@@ -4,6 +4,11 @@ const Auctions = require("../models/Auction");
 const Orders = require("../models/Order");
 const socketIo = require("socket.io");
 const Product = require("../models/Product");
+const Wallets = require("../models/Wallet");
+const WalletHistorys = require("../models/Wallet_History");
+const Config = require("../models/Config");
+
+
 // Đường dẫn đến model của phiên đấu giá
 // router.post('/newAuction', async (req, res) => {
 //   try {
@@ -130,6 +135,31 @@ exports.getAllAuction = (req, res, next) => {
 exports.createAuction = async (req, res, next) => {
   try {
     const product_id = req.body.product_id;
+
+    const wallet = await Wallets.findOne({ user_id: req.body.host_id });
+    if (!wallet) {
+      return res.status(400).json({ error: "User has no wallet!" });
+    }
+    const config = await Config.findOne({ type_config: "Create auction" });
+    console.log(config.money); 
+    if (wallet.balance < config.money) {
+      return res
+        .status(400)
+        .json({ error: "Not enough money to place a bid!" });
+    }
+
+    // Trừ tiền từ ví
+    const bidAmount = config.money; // Giả sử bidAmount bằng giá khởi điểm
+    wallet.balance -= bidAmount;
+    await wallet.save();
+    
+    // Ghi lịch sử vào WalletHistory
+    const walletHistory = new WalletHistorys({
+      wallet_id: wallet._id,
+      amount: bidAmount,
+      type: "withdraw",
+    });
+    await walletHistory.save();
     const auction = await Auctions.create(req.body);
 
     console.log("Auction Created ", auction);
