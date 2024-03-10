@@ -23,7 +23,7 @@ exports.getWallet = (req, res, next) => {
 exports.getWalletByUserId = (req, res, next) => {
   const user_id = req.params.userId;
   console.log("userId", user_id);
-  Wallets.findOne({ user_id})
+  Wallets.findOne({ user_id })
     .then(
       (wallet) => {
         res.statusCode = 200;
@@ -208,22 +208,34 @@ exports.registerJoinInAuction = async (req, res) => {
     if (!auction) {
       return res.status(404).json({ error: "Auction not found!" });
     }
-    
+
     // Kiểm tra xem user có tồn tại không
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ error: "User not found!" });
     }
-   
+
     // Kiểm tra xem user có ví tiền không
     const wallet = await Wallets.findOne({ user_id: userId });
     if (!wallet) {
       return res.status(400).json({ error: "User has no wallet!" });
     }
- 
+
+    // Ghi user vào danh sách AuctionMember
+    const participation = await AuctionMember.findOne({
+      auction_id: auctionId,
+      member_id: userId,
+    });
+
+    if (participation) {
+      return res
+        .status(400)
+        .json({ message: "You have entered this auction!" });
+    }
+
     // So sánh ví tiền của user và giá khởi điểm của auction
     const config = await Config.findOne({ type_config: "Join in auction" });
-    console.log(config.money); 
+    console.log(config.money);
     if (wallet.balance < config.money) {
       return res
         .status(400)
@@ -234,7 +246,7 @@ exports.registerJoinInAuction = async (req, res) => {
     const bidAmount = config.money; // Giả sử bidAmount bằng giá khởi điểm
     wallet.balance -= bidAmount;
     await wallet.save();
-    
+
     // Ghi lịch sử vào WalletHistory
     const walletHistory = new WalletHistorys({
       wallet_id: wallet._id,
@@ -242,16 +254,6 @@ exports.registerJoinInAuction = async (req, res) => {
       type: "withdraw",
     });
     await walletHistory.save();
-
-    // Ghi user vào danh sách AuctionMember
-    const participation = await AuctionMember.findOne({
-      auction_id: auctionId,
-      member_id: userId,
-    });
-
-    if (participation) {
-      return res.status(400).json({ message: "You have entered this auction!" });
-    }
 
     const auctionMember = new AuctionMember({
       auction_id: auctionId,

@@ -46,9 +46,6 @@ const auctionSchema = new Schema(
       ref: "Product",
       required: true,
     },
-  },
-  {
-    timestamps: true,
   }
 );
 
