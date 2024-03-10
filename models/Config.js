@@ -8,12 +8,13 @@ const configSchema = new Schema(
       type: String,
       required: true,
     },
+    //"Join in auction" - "Register auction"
     description: {
       type: String,
       required: true,
     },
     money: {
-      type: mongoose.Types.Currency,
+      type: Number,
       required: true,
     }
   });
