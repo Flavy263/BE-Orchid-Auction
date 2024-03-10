@@ -13,7 +13,7 @@ const configSchema = new Schema(
       required: true,
     },
     money: {
-      type: mongoose.Types.Currency,
+      type: Number,
       required: true,
     }
   });
