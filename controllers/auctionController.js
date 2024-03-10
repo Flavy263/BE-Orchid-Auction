@@ -87,8 +87,14 @@ function scheduleAuctionStatusUpdates(auction, io) {
   // );
   const startTime = moment(start_time, "YYYY-MM-DDTHH:mm:ssZ").toDate();
   const endTime = moment(end_time, "YYYY-MM-DDTHH:mm:ssZ").toDate();
-  const regitrationStartTime = moment(regitration_start_time, "YYYY-MM-DDTHH:mm:ssZ").toDate();
-  const regitrationEndTime = moment(regitration_end_time, "YYYY-MM-DDTHH:mm:ssZ").toDate();
+  const regitrationStartTime = moment(
+    regitration_start_time,
+    "YYYY-MM-DDTHH:mm:ssZ"
+  ).toDate();
+  const regitrationEndTime = moment(
+    regitration_end_time,
+    "YYYY-MM-DDTHH:mm:ssZ"
+  ).toDate();
   // Kiểm tra và cập nhật trạng thái khi qua mốc thời gian
   schedule.scheduleJob(regitrationStartTime, async () => {
     await updateAuctionStatus(_id, "not yet auctioned", io);
@@ -121,7 +127,6 @@ exports.getAllAuction = (req, res, next) => {
     .catch((err) => next(err));
 };
 
-
 exports.createAuction = async (req, res, next) => {
   try {
     const product_id = req.body.product_id;
@@ -147,7 +152,10 @@ exports.createAuction = async (req, res, next) => {
     } else {
       res.statusCode = 404;
       res.setHeader("Content-Type", "application/json");
-      res.json({ success: false, message: "Product not found or not updated." });
+      res.json({
+        success: false,
+        message: "Product not found or not updated.",
+      });
     }
   } catch (err) {
     next(err);
@@ -414,4 +422,27 @@ exports.getOrderByHostID = (req, res, next) => {
       (err) => next(err)
     )
     .catch((err) => next(err));
+};
+
+exports.checkAuctionParticipation = async (req, res) => {
+  try {
+    const auctionId = req.params.auctionId;
+    const memberId = req.params.memberId;
+
+    // Kiểm tra xem thành viên đã tham gia đấu giá chưa
+    const participation = await AuctionMember.findOne({
+      auction_id: auctionId,
+      member_id: memberId,
+    });
+    if (participation) {
+      return res
+        .status(400)
+        .json({ message: "Bạn đã tham gia đấu giá này rồi." });
+    }
+
+    return res.status(200).json({ message: "Bạn chưa tham gia đấu giá này." });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
 };
