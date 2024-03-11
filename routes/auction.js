@@ -71,6 +71,7 @@ router.get(
 
 router.post("/createOrder", authenticateJWT, auctionController.createOrder);
 router.put("/updateOrder/:orderId", authenticateJWT, auctionController.updateOrder);
+
 router.get("/getOrder/:memberId", authenticateJWT, auctionController.getOrderByMemberID);
 router.get("/getOrder/:hostId", authenticateJWT, auctionController.getOrderByHostID);
 router.get("/checkAuctionParticipation/:auctionId/:memberId", authenticateJWT, auctionController.checkAuctionParticipation);
@@ -94,7 +95,7 @@ router.get(
 );
 
 router.get(
-  "/memberAuctions-autioned/:memberId",
+  "/memberAuctions-auctioned/:memberId",
   authenticateJWT,
   auctionController.getMemberAuctionAuctioned
 );
