@@ -8,7 +8,6 @@ const Wallets = require("../models/Wallet");
 const WalletHistorys = require("../models/Wallet_History");
 const Config = require("../models/Config");
 
-
 // Đường dẫn đến model của phiên đấu giá
 // router.post('/newAuction', async (req, res) => {
 //   try {
@@ -141,7 +140,7 @@ exports.createAuction = async (req, res, next) => {
       return res.status(400).json({ error: "User has no wallet!" });
     }
     const config = await Config.findOne({ type_config: "Create auction" });
-    console.log(config.money); 
+    console.log(config.money);
     if (wallet.balance < config.money) {
       return res
         .status(400)
@@ -152,7 +151,8 @@ exports.createAuction = async (req, res, next) => {
     const bidAmount = config.money; // Giả sử bidAmount bằng giá khởi điểm
     wallet.balance -= bidAmount;
     await wallet.save();
-    
+    console.log(bidAmount);
+
     // Ghi lịch sử vào WalletHistory
     const walletHistory = new WalletHistorys({
       wallet_id: wallet._id,
@@ -160,6 +160,7 @@ exports.createAuction = async (req, res, next) => {
       type: "withdraw",
     });
     await walletHistory.save();
+    console.log(walletHistory);
     const auction = await Auctions.create(req.body);
 
     console.log("Auction Created ", auction);
