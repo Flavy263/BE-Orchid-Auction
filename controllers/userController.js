@@ -110,7 +110,9 @@ exports.postAddUser = async (req, res, next) => {
   try {
     // Check if there is an image file uploaded
     if (!req.file) {
-      return res.status(400).json({ success: false, message: 'No image uploaded.' });
+      return res
+        .status(400)
+        .json({ success: false, message: "No image uploaded." });
     }
 
     // Get the Cloudinary image URL
@@ -140,10 +142,10 @@ exports.postAddUser = async (req, res, next) => {
     });
 
     // Return success response
-    res.status(200).json({ success: true, status: 'Registration Successful!' });
+    res.status(200).json({ success: true, status: "Registration Successful!" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, message: 'Internal Server Error' });
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
 
