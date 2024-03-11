@@ -12,7 +12,6 @@ const auctionBidSchema = new Schema(
     customer_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: false,
     },
     price: {
       type: mongoose.Types.Currency,
@@ -20,12 +19,9 @@ const auctionBidSchema = new Schema(
     },
     create_time: {
       type: Date,
-      required: true,
+      default: Date.now,
     },
   },
-  {
-    timestamps: true,
-  }
 );
 
 var AuctionBid = mongoose.model("Auction_Bid", auctionBidSchema);
