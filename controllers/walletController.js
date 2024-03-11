@@ -20,6 +20,21 @@ exports.getWallet = (req, res, next) => {
     .catch((err) => next(err));
 };
 
+exports.getAllWalletHistory = (req, res, next) => {
+  WalletHistorys.find({})
+    .populate("wallet_id")
+    .populate("wallet_id.user_id")
+    .then(
+      (wallet) => {
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "application/json");
+        res.json(wallet);
+      },
+      (err) => next(err)
+    )
+    .catch((err) => next(err));
+};
+
 exports.getWalletByUserId = (req, res, next) => {
   const user_id = req.params.userId;
   console.log("userId", user_id);
