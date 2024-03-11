@@ -12,7 +12,7 @@ const auctionBidSchema = new Schema(
     customer_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      required: false,
     },
     price: {
       type: mongoose.Types.Currency,

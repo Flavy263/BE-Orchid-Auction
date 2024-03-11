@@ -136,6 +136,8 @@ exports.createAuction = async (req, res, next) => {
     const product_id = req.body.product_id;
 
     const wallet = await Wallets.findOne({ user_id: req.body.host_id });
+
+    
     if (!wallet) {
       return res.status(400).json({ error: "User has no wallet!" });
     }
@@ -162,15 +164,27 @@ exports.createAuction = async (req, res, next) => {
     await walletHistory.save();
     console.log(walletHistory);
     const auction = await Auctions.create(req.body);
-
-    console.log("Auction Created ", auction);
-
-    // Tìm và cập nhật trạng thái sản phẩm
     const updatedProduct = await Product.findOneAndUpdate(
       { _id: product_id },
       { $set: { status: true } },
       { new: true }
     );
+    const auctionBidData = {
+      auction_id: auction._id, // Đây là id của phiên đấu giá vừa được tạo
+      price: auction.req.body.starting_price, // Giả sử bidAmount bằng giá khởi điểm
+      customer_id: req.body.host_id,
+      create_time: new Date(), // Thời gian hiện tại
+    };
+    console.log("Auction Created ", auction);
+    try {
+      const auctionBid = await AuctionBid.create(auctionBidData);
+      console.log("AuctionBid", auctionBid);
+    } catch (auctionBidError) {
+      // Log and handle the error occurred during AuctionBid creation
+      console.error("Error occurred while creating AuctionBid:", auctionBidError);
+      // You can choose to send an appropriate response here
+    }
+    
 
     // Kiểm tra xem sản phẩm có tồn tại và được cập nhật không
     if (updatedProduct) {
@@ -378,6 +392,7 @@ exports.getAuctionaAuctioned = (req, res, next) => {
 };
 
 const AuctionMember = require("../models/Auction_Member");
+const AuctionBid = require("../models/Auction_Bid");
 
 exports.checkUserInAuction = (auctionId, userId) => {
   return AuctionMember.findOne({ auction_id: auctionId, member_id: userId })
@@ -504,7 +519,7 @@ exports.getMemberAuctionNotYet = async (req, res) => {
     const resultAuctions = filteredAuctions.map((auctionMember) => {
       const auction = auctionMember.auction_id;
       const product = auction.product_id;
-      
+
       return {
         auction_id: auction._id,
         price_step: auction.price_step,
@@ -512,8 +527,8 @@ exports.getMemberAuctionNotYet = async (req, res) => {
         auctionInfo: auction.auctionInfo,
         start_time: auction.start_time,
         end_time: auction.end_time,
-        registration_start_time: auction.registration_start_time,
-        registration_end_time: auction.registration_end_time,
+        regitration_start_time: auction.regitration_start_time,
+        regitration_end_time: auction.regitration_end_time,
         status: auction.status,
         host_id: auction.host_id,
         product: {
@@ -550,7 +565,7 @@ exports.getMemberAuctionAboutTo = async (req, res) => {
         model: "Product",
       },
     });
-
+    console.log("registeredAuctions", registeredAuctions);
     // Lọc các đấu giá theo status
     const filteredAuctions = registeredAuctions.filter((auctionMember) => {
       const auctionStatus = auctionMember.auction_id.status;
@@ -562,7 +577,7 @@ exports.getMemberAuctionAboutTo = async (req, res) => {
     const resultAuctions = filteredAuctions.map((auctionMember) => {
       const auction = auctionMember.auction_id;
       const product = auction.product_id;
-      
+
       return {
         auction_id: auction._id,
         price_step: auction.price_step,
@@ -570,8 +585,8 @@ exports.getMemberAuctionAboutTo = async (req, res) => {
         auctionInfo: auction.auctionInfo,
         start_time: auction.start_time,
         end_time: auction.end_time,
-        registration_start_time: auction.registration_start_time,
-        registration_end_time: auction.registration_end_time,
+        regitration_start_time: auction.regitration_start_time,
+        regitration_end_time: auction.regitration_end_time,
         status: auction.status,
         host_id: auction.host_id,
         product: {
@@ -620,7 +635,7 @@ exports.getMemberAuctionAuctioning = async (req, res) => {
     const resultAuctions = filteredAuctions.map((auctionMember) => {
       const auction = auctionMember.auction_id;
       const product = auction.product_id;
-      
+
       return {
         auction_id: auction._id,
         price_step: auction.price_step,
@@ -628,8 +643,8 @@ exports.getMemberAuctionAuctioning = async (req, res) => {
         auctionInfo: auction.auctionInfo,
         start_time: auction.start_time,
         end_time: auction.end_time,
-        registration_start_time: auction.registration_start_time,
-        registration_end_time: auction.registration_end_time,
+        regitration_start_time: auction.regitration_start_time,
+        regitration_end_time: auction.regitration_end_time,
         status: auction.status,
         host_id: auction.host_id,
         product: {
@@ -678,7 +693,7 @@ exports.getMemberAuctionAuctioned = async (req, res) => {
     const resultAuctions = filteredAuctions.map((auctionMember) => {
       const auction = auctionMember.auction_id;
       const product = auction.product_id;
-      
+
       return {
         auction_id: auction._id,
         price_step: auction.price_step,
@@ -686,8 +701,8 @@ exports.getMemberAuctionAuctioned = async (req, res) => {
         auctionInfo: auction.auctionInfo,
         start_time: auction.start_time,
         end_time: auction.end_time,
-        registration_start_time: auction.registration_start_time,
-        registration_end_time: auction.registration_end_time,
+        regitration_start_time: auction.regitration_start_time,
+        regitration_end_time: auction.regitration_end_time,
         status: auction.status,
         host_id: auction.host_id,
         product: {

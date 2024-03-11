@@ -6,9 +6,9 @@ const moment = require('moment');
 const User = require('../models/User');
 const Wallet = require('../models/Wallet')
 
-exports.handleCheckPrice = async (priceStep, customerPrice, auctionPrice, customerWallet) => {
+exports.handleCheckPrice = async (priceStep, customerPrice, auctionPrice) => {
   try {
-    if (customerPrice <= auctionPrice || customerPrice % priceStep != 0 || customerWallet < auctionPrice) {
+    if (customerPrice <= auctionPrice || customerPrice % priceStep != 0) {
       return false;
     }
     return true;
@@ -21,12 +21,17 @@ exports.handleCheckPrice = async (priceStep, customerPrice, auctionPrice, custom
 exports.handleNewBid = async (req, res) => {
   try {
     const { auctionId, customerId } = req.params; // Lấy auctionId và customerId từ params
+    console.log(auctionId);
+    console.log(customerId);
     const { price } = req.body; // Lấy price từ req.body
-
+    console.log("price", price);
     const auction = await Auction.findById(auctionId);
     const customer = await User.findById(customerId);
     const auctionBid = await AuctionBid.findById(auctionId);
     const customerWallet = await Wallet.find({ user_id: customerId })
+    if (!auctionBid) {
+      throw new Error('AuctionBid not found');
+    }
     if (!auction) {
       throw new Error('Auction not found');
     }
@@ -39,8 +44,15 @@ exports.handleNewBid = async (req, res) => {
       throw new Error('Bidding registration period has ended');
     }
 
+    // viết hàm await giúp tui tìm giá tiền lớn nhất ở bản AuctionBid dựa trên auctionId và chỉ trề maxPrice có biên let maxPrice
+    // và dùng maxPrice này ràng vào this.handleFindMaxPrice(auctionBid.price)
     // kiểm tra xem số tiền có phải bội của bước giá hay không
-    if (!this.handleCheckPrice(auction.price_step, price, auctionBid.price, customerWallet.balance)) {
+    const maxBid = await AuctionBid.findOne({ auction_id: auctionId }).sort({ price: -1 });
+
+    const maxPrice = maxBid ? maxBid.price : 0;
+
+    // Kiểm tra xem giá mới có phải là bội của bước giá không
+    if ((price - maxPrice) % auction.price_step !== 0) {
       throw new Error('Price is not a multiple of the price step');
     }
 
@@ -61,7 +73,7 @@ exports.handleNewBid = async (req, res) => {
   }
 };
 
-const AuctionBid = require('./auctionBidModel'); // Import model
+
 
 exports.handleFindMaxPrice = async (req, res, next) => {
   try {
