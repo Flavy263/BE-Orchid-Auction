@@ -214,11 +214,10 @@ exports.banUserByID = async (req, res) => {
     user.status = false;
     await user.save();
 
-    // Tạo hoặc cập nhật report_request
-    const reportRequest = await ReportRequest.findOneAndUpdate(
+    // Cập nhật tất cả các report có type là "ban" của thành viên
+    await ReportRequest.updateMany(
       { user_id: userId, type_report: "ban" },
-      { $set: { status: false, update_timestamp: Date.now() } },
-      { upsert: true, new: true }
+      { $set: { status: false, update_timestamp: Date.now() } }
     );
 
     return res.status(200).json({ message: "User banned successfully" });
