@@ -7,6 +7,7 @@ const Product = require("../models/Product");
 const Wallets = require("../models/Wallet");
 const WalletHistorys = require("../models/Wallet_History");
 const Config = require("../models/Config");
+const Auction_bid = require("../models/Auction_Bid");
 
 // Đường dẫn đến model của phiên đấu giá
 // router.post('/newAuction', async (req, res) => {
@@ -139,8 +140,8 @@ exports.createAuction = async (req, res, next) => {
     if (!wallet) {
       return res.status(400).json({ error: "User has no wallet!" });
     }
+
     const config = await Config.findOne({ type_config: "Create auction" });
-    console.log(config.money);
     if (wallet.balance < config.money) {
       return res
         .status(400)
@@ -151,7 +152,6 @@ exports.createAuction = async (req, res, next) => {
     const bidAmount = config.money; // Giả sử bidAmount bằng giá khởi điểm
     wallet.balance -= bidAmount;
     await wallet.save();
-    console.log(bidAmount);
 
     // Ghi lịch sử vào WalletHistory
     const walletHistory = new WalletHistorys({
@@ -160,10 +160,13 @@ exports.createAuction = async (req, res, next) => {
       type: "withdraw",
     });
     await walletHistory.save();
-    console.log(walletHistory);
-    const auction = await Auctions.create(req.body);
 
-    console.log("Auction Created ", auction);
+    const auction = await Auctions.create(req.body);
+    const auctionBid = new Auction_bid({
+      auction_id: auction._id,
+      price: auction.starting_price,
+    });
+    await auctionBid.save();
 
     // Tìm và cập nhật trạng thái sản phẩm
     const updatedProduct = await Product.findOneAndUpdate(
@@ -504,7 +507,7 @@ exports.getMemberAuctionNotYet = async (req, res) => {
     const resultAuctions = filteredAuctions.map((auctionMember) => {
       const auction = auctionMember.auction_id;
       const product = auction.product_id;
-      
+
       return {
         auction_id: auction._id,
         price_step: auction.price_step,
@@ -562,7 +565,7 @@ exports.getMemberAuctionAboutTo = async (req, res) => {
     const resultAuctions = filteredAuctions.map((auctionMember) => {
       const auction = auctionMember.auction_id;
       const product = auction.product_id;
-      
+
       return {
         auction_id: auction._id,
         price_step: auction.price_step,
@@ -620,7 +623,7 @@ exports.getMemberAuctionAuctioning = async (req, res) => {
     const resultAuctions = filteredAuctions.map((auctionMember) => {
       const auction = auctionMember.auction_id;
       const product = auction.product_id;
-      
+
       return {
         auction_id: auction._id,
         price_step: auction.price_step,
@@ -678,7 +681,7 @@ exports.getMemberAuctionAuctioned = async (req, res) => {
     const resultAuctions = filteredAuctions.map((auctionMember) => {
       const auction = auctionMember.auction_id;
       const product = auction.product_id;
-      
+
       return {
         auction_id: auction._id,
         price_step: auction.price_step,
