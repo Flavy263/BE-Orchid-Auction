@@ -21,7 +21,7 @@ const socketIo = require("socket.io");
 const server = http.createServer(app);
 const io = require("socket.io")(server, {
   cors: {
-    origin: "http://127.0.0.1:5173",
+    origin: "*",
     methods: ["GET", "POST"],
     allowedHeaders: ["my-custom-header"],
     credentials: true,
@@ -67,7 +67,6 @@ connect.then(
 //   allowedHeaders: ['Content-Type', 'Authorization'],
 //   credentials: true,
 // };
-
 const corsOptions = {
   origin: "*", // Allow any origin
   // origin: ["http://localhost:3010", "http://127.0.0.1:5173"],
