@@ -8,7 +8,6 @@ const Wallets = require("../models/Wallet");
 const WalletHistorys = require("../models/Wallet_History");
 const Config = require("../models/Config");
 
-
 // Đường dẫn đến model của phiên đấu giá
 // router.post('/newAuction', async (req, res) => {
 //   try {
@@ -141,7 +140,7 @@ exports.createAuction = async (req, res, next) => {
       return res.status(400).json({ error: "User has no wallet!" });
     }
     const config = await Config.findOne({ type_config: "Create auction" });
-    console.log(config.money); 
+    console.log(config.money);
     if (wallet.balance < config.money) {
       return res
         .status(400)
@@ -152,7 +151,8 @@ exports.createAuction = async (req, res, next) => {
     const bidAmount = config.money; // Giả sử bidAmount bằng giá khởi điểm
     wallet.balance -= bidAmount;
     await wallet.save();
-    
+    console.log(bidAmount);
+
     // Ghi lịch sử vào WalletHistory
     const walletHistory = new WalletHistorys({
       wallet_id: wallet._id,
@@ -160,6 +160,7 @@ exports.createAuction = async (req, res, next) => {
       type: "withdraw",
     });
     await walletHistory.save();
+    console.log(walletHistory);
     const auction = await Auctions.create(req.body);
 
     console.log("Auction Created ", auction);
@@ -484,7 +485,13 @@ exports.getMemberAuctionNotYet = async (req, res) => {
     // Tìm tất cả các đấu giá mà thành viên đã đăng ký
     const registeredAuctions = await AuctionMember.find({
       member_id: memberId,
-    }).populate("auction_id");
+    }).populate({
+      path: "auction_id",
+      populate: {
+        path: "product_id",
+        model: "Product",
+      },
+    });
 
     // Lọc các đấu giá theo status
     const filteredAuctions = registeredAuctions.filter((auctionMember) => {
@@ -493,9 +500,11 @@ exports.getMemberAuctionNotYet = async (req, res) => {
       return auctionStatus === "not yet auctioned";
     });
 
-    // Tạo một mảng chứa thông tin cần thiết từ các đấu giá
+    // Tạo một mảng chứa thông tin cần thiết từ các đấu giá và sản phẩm
     const resultAuctions = filteredAuctions.map((auctionMember) => {
       const auction = auctionMember.auction_id;
+      const product = auction.product_id;
+      
       return {
         auction_id: auction._id,
         price_step: auction.price_step,
@@ -507,10 +516,19 @@ exports.getMemberAuctionNotYet = async (req, res) => {
         registration_end_time: auction.registration_end_time,
         status: auction.status,
         host_id: auction.host_id,
-        product_id: auction.product_id,
+        product: {
+          _id: product._id,
+          name: product.name,
+          image: product.image,
+          video: product.video,
+          description: product.description,
+          status: product.status,
+          host_id: product.host_id,
+          timestamp: product.timestamp,
+        },
       };
     });
-
+    console.log(resultAuctions);
     res.status(200).json(resultAuctions);
   } catch (error) {
     console.error(error);
@@ -525,7 +543,13 @@ exports.getMemberAuctionAboutTo = async (req, res) => {
     // Tìm tất cả các đấu giá mà thành viên đã đăng ký
     const registeredAuctions = await AuctionMember.find({
       member_id: memberId,
-    }).populate("auction_id");
+    }).populate({
+      path: "auction_id",
+      populate: {
+        path: "product_id",
+        model: "Product",
+      },
+    });
 
     // Lọc các đấu giá theo status
     const filteredAuctions = registeredAuctions.filter((auctionMember) => {
@@ -534,9 +558,11 @@ exports.getMemberAuctionAboutTo = async (req, res) => {
       return auctionStatus === "about to auction";
     });
 
-    // Tạo một mảng chứa thông tin cần thiết từ các đấu giá
+    // Tạo một mảng chứa thông tin cần thiết từ các đấu giá và sản phẩm
     const resultAuctions = filteredAuctions.map((auctionMember) => {
       const auction = auctionMember.auction_id;
+      const product = auction.product_id;
+      
       return {
         auction_id: auction._id,
         price_step: auction.price_step,
@@ -548,10 +574,19 @@ exports.getMemberAuctionAboutTo = async (req, res) => {
         registration_end_time: auction.registration_end_time,
         status: auction.status,
         host_id: auction.host_id,
-        product_id: auction.product_id,
+        product: {
+          _id: product._id,
+          name: product.name,
+          image: product.image,
+          video: product.video,
+          description: product.description,
+          status: product.status,
+          host_id: product.host_id,
+          timestamp: product.timestamp,
+        },
       };
     });
-
+    console.log(resultAuctions);
     res.status(200).json(resultAuctions);
   } catch (error) {
     console.error(error);
@@ -566,7 +601,13 @@ exports.getMemberAuctionAuctioning = async (req, res) => {
     // Tìm tất cả các đấu giá mà thành viên đã đăng ký
     const registeredAuctions = await AuctionMember.find({
       member_id: memberId,
-    }).populate("auction_id");
+    }).populate({
+      path: "auction_id",
+      populate: {
+        path: "product_id",
+        model: "Product",
+      },
+    });
 
     // Lọc các đấu giá theo status
     const filteredAuctions = registeredAuctions.filter((auctionMember) => {
@@ -575,9 +616,11 @@ exports.getMemberAuctionAuctioning = async (req, res) => {
       return auctionStatus === "auctioning";
     });
 
-    // Tạo một mảng chứa thông tin cần thiết từ các đấu giá
+    // Tạo một mảng chứa thông tin cần thiết từ các đấu giá và sản phẩm
     const resultAuctions = filteredAuctions.map((auctionMember) => {
       const auction = auctionMember.auction_id;
+      const product = auction.product_id;
+      
       return {
         auction_id: auction._id,
         price_step: auction.price_step,
@@ -589,10 +632,19 @@ exports.getMemberAuctionAuctioning = async (req, res) => {
         registration_end_time: auction.registration_end_time,
         status: auction.status,
         host_id: auction.host_id,
-        product_id: auction.product_id,
+        product: {
+          _id: product._id,
+          name: product.name,
+          image: product.image,
+          video: product.video,
+          description: product.description,
+          status: product.status,
+          host_id: product.host_id,
+          timestamp: product.timestamp,
+        },
       };
     });
-
+    console.log(resultAuctions);
     res.status(200).json(resultAuctions);
   } catch (error) {
     console.error(error);
@@ -607,7 +659,13 @@ exports.getMemberAuctionAuctioned = async (req, res) => {
     // Tìm tất cả các đấu giá mà thành viên đã đăng ký
     const registeredAuctions = await AuctionMember.find({
       member_id: memberId,
-    }).populate("auction_id");
+    }).populate({
+      path: "auction_id",
+      populate: {
+        path: "product_id",
+        model: "Product",
+      },
+    });
 
     // Lọc các đấu giá theo status
     const filteredAuctions = registeredAuctions.filter((auctionMember) => {
@@ -616,9 +674,11 @@ exports.getMemberAuctionAuctioned = async (req, res) => {
       return auctionStatus === "auctioned";
     });
 
-    // Tạo một mảng chứa thông tin cần thiết từ các đấu giá
+    // Tạo một mảng chứa thông tin cần thiết từ các đấu giá và sản phẩm
     const resultAuctions = filteredAuctions.map((auctionMember) => {
       const auction = auctionMember.auction_id;
+      const product = auction.product_id;
+      
       return {
         auction_id: auction._id,
         price_step: auction.price_step,
@@ -630,10 +690,19 @@ exports.getMemberAuctionAuctioned = async (req, res) => {
         registration_end_time: auction.registration_end_time,
         status: auction.status,
         host_id: auction.host_id,
-        product_id: auction.product_id,
+        product: {
+          _id: product._id,
+          name: product.name,
+          image: product.image,
+          video: product.video,
+          description: product.description,
+          status: product.status,
+          host_id: product.host_id,
+          timestamp: product.timestamp,
+        },
       };
     });
-
+    console.log(resultAuctions);
     res.status(200).json(resultAuctions);
   } catch (error) {
     console.error(error);
