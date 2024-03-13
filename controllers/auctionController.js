@@ -732,3 +732,24 @@ exports.getMemberAuctionAuctioned = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+exports.getMostPriceInAuctionBid = async (req, res, next) => {
+  try {
+    const auctionId = req.params.auctionId;
+
+    // Tìm auction_bid có giá lớn nhất theo auction_id
+    const highestBid = await Auction_bid.findOne({ auction_id: auctionId })
+      .sort({ price: -1 }) // Sắp xếp theo giá giảm dần để lấy giá lớn nhất
+      .limit(1);
+
+    if (highestBid) {
+      res.status(200).json(highestBid);
+    } else {
+      res
+        .status(404)
+        .json({ message: "Không tìm thấy auction_bid cho phiên đấu giá này." });
+    }
+  } catch (err) {
+    next(err);
+  }
+};
