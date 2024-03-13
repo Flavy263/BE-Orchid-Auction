@@ -35,4 +35,6 @@ router.get(
   walletController.getWalletHistoryByUserID
 );
 
+router.get("/getWalletHistoryByDate/:date", authenticateJWT, walletController.getWalletHistoryByDate);
+
 module.exports = router;

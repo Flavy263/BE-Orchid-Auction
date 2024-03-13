@@ -303,3 +303,29 @@ exports.getWalletHistoryByUserID = async (req, res, next) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+exports.getWalletHistoryByDate = async (req, res) => {
+  try {
+    const requestedDate = new Date(req.params.date);
+    const startOfDay = new Date(
+      requestedDate.getFullYear(),
+      requestedDate.getMonth(),
+      requestedDate.getDate()
+    );
+    const endOfDay = new Date(
+      requestedDate.getFullYear(),
+      requestedDate.getMonth(),
+      requestedDate.getDate() + 1
+    );
+
+    // Sử dụng Mongoose để lấy lịch sử giao dịch tiền của tất cả người dùng trong ngày cụ thể
+    const transactionHistory = await WalletHistorys.find({
+      timestamp: { $gte: startOfDay, $lt: endOfDay },
+    }).exec();
+
+    res.json(transactionHistory);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
