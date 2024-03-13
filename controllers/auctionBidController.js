@@ -25,8 +25,9 @@ exports.handleNewBid = async (req, res) => {
     console.log("price", price);
     const auction = await Auction.findById(auctionId);
     const customer = await User.findById(customerId);
-    const auctionBid = await AuctionBid.findById(auctionId);
-    const customerWallet = await Wallet.find({ user_id: customerId });
+    const auctionBid = await AuctionBid.find({ auction_id: auctionId });
+    const customerWallet = await Wallet.find({ user_id: customerId })
+    console.log("bid", auctionBid);
     if (!auctionBid) {
       throw new Error("AuctionBid not found");
     }
@@ -49,11 +50,15 @@ exports.handleNewBid = async (req, res) => {
       price: -1,
     });
 
-    const maxPrice = maxBid ? maxBid.price : 0;
+    // const maxPrice = maxBid ? maxBid.price : 0;
+    // console.log("maxPid", maxBid);
+    if (price < maxBid.price) {
+      throw new Error(`Không dc nhập số tiền nhỏ hơn hoặc bằng ${maxBid.price}`);
 
+    }
     // Kiểm tra xem giá mới có phải là bội của bước giá không
-    if ((price - maxPrice) % auction.price_step !== 0) {
-      throw new Error("Price is not a multiple of the price step");
+    if ((price - maxBid.price) % auction.price_step !== 0) {
+      throw new Error('Price is not a multiple of the price step');
     }
 
     const newBid = new AuctionBid({

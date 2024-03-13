@@ -134,6 +134,7 @@ exports.getAllAuction = (req, res, next) => {
 
 exports.createAuction = async (req, res, next) => {
   try {
+    console.log("req",req.body);
     const product_id = req.body.product_id;
 
     const wallet = await Wallets.findOne({ user_id: req.body.host_id });
@@ -176,21 +177,21 @@ exports.createAuction = async (req, res, next) => {
       { $set: { status: true } },
       { new: true }
     );
-    const auctionBidData = {
-      auction_id: auction._id, // Đây là id của phiên đấu giá vừa được tạo
-      price: auction.req.body.starting_price, // Giả sử bidAmount bằng giá khởi điểm
-      customer_id: req.body.host_id,
-      create_time: new Date(), // Thời gian hiện tại
-    };
-    console.log("Auction Created ", auction);
-    try {
-      const auctionBid = await AuctionBid.create(auctionBidData);
-      console.log("AuctionBid", auctionBid);
-    } catch (auctionBidError) {
-      // Log and handle the error occurred during AuctionBid creation
-      console.error("Error occurred while creating AuctionBid:", auctionBidError);
-      // You can choose to send an appropriate response here
-    }
+    // const auctionBidData = {
+    //   auction_id: auction._id, // Đây là id của phiên đấu giá vừa được tạo
+    //   price: req.body.starting_price, // Giả sử bidAmount bằng giá khởi điểm
+    //   customer_id: req.body.host_id,
+    //   create_time: new Date(), // Thời gian hiện tại
+    // };
+    // console.log("Auction Created ", auction);
+    // try {
+    //   const auctionBid = await AuctionBid.create(auctionBidData);
+    //   console.log("AuctionBid", auctionBid);
+    // } catch (auctionBidError) {
+    //   // Log and handle the error occurred during AuctionBid creation
+    //   console.error("Error occurred while creating AuctionBid:", auctionBidError);
+    //   // You can choose to send an appropriate response here
+    // }
     
 
     // Kiểm tra xem sản phẩm có tồn tại và được cập nhật không
