@@ -9,6 +9,7 @@ var usersRouter = require("./routes/users");
 const roleRouter = require("./routes/role");
 const productRouter = require("./routes/product");
 const auctionRouter = require("./routes/auction");
+const auctionBidRouter = require("./routes/auctionBid");
 const walletRouter = require("./routes/wallet");
 const ReportRequestRouter = require("./routes/reportRequest");
 const ConfigRouter = require("./routes/config");
@@ -21,7 +22,7 @@ const socketIo = require("socket.io");
 const server = http.createServer(app);
 const io = require("socket.io")(server, {
   cors: {
-    origin: "http://127.0.0.1:5173",
+    origin: "*",
     methods: ["GET", "POST"],
     allowedHeaders: ["my-custom-header"],
     credentials: true,
@@ -67,7 +68,6 @@ connect.then(
 //   allowedHeaders: ['Content-Type', 'Authorization'],
 //   credentials: true,
 // };
-
 const corsOptions = {
   origin: "*", // Allow any origin
   // origin: ["http://localhost:3010", "http://127.0.0.1:5173"],
@@ -92,6 +92,7 @@ app.use("/users", usersRouter);
 app.use("/roles", roleRouter);
 app.use("/products", productRouter);
 app.use("/auctions", auctionRouter);
+app.use("/auctionBid", auctionBidRouter);
 app.use("/wallets", walletRouter);
 app.use("/report_requests", ReportRequestRouter);
 app.use("/configs", ConfigRouter);
