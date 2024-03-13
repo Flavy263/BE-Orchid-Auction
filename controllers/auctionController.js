@@ -134,6 +134,7 @@ exports.getAllAuction = (req, res, next) => {
 
 exports.createAuction = async (req, res, next) => {
   try {
+    console.log("req",req.body);
     const product_id = req.body.product_id;
 
     const wallet = await Wallets.findOne({ user_id: req.body.host_id });
@@ -178,7 +179,7 @@ exports.createAuction = async (req, res, next) => {
     );
     const auctionBidData = {
       auction_id: auction._id, // Đây là id của phiên đấu giá vừa được tạo
-      price: auction.req.body.starting_price, // Giả sử bidAmount bằng giá khởi điểm
+      price: req.body.starting_price, // Giả sử bidAmount bằng giá khởi điểm
       customer_id: req.body.host_id,
       create_time: new Date(), // Thời gian hiện tại
     };
