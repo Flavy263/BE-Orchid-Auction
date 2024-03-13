@@ -42,9 +42,10 @@ router.post('/uploadVideo', uploadVideo.single('video'), productController.uploa
 // method get
 router.get("/", productController.getAllProduct);
 
+router.get("/ProductToday/:date", productController.getProductsCreatedToday);
+
 router.get("/:userId", authenticateJWT, productController.getProductByUserID);
-// method post
-router.post("/", authenticateJWT, productController.postAddProduct);
+
 // method put update product
 router.put("/:productId", authenticateJWT, productController.putUpdateProduct);
 // method delete product

@@ -122,4 +122,11 @@ router.get(
   auctionController.getMostPriceInAuctionBid
 );
 
+// router.get(
+//   "/AuctionToday",
+//   authenticateJWT,
+//   auctionController.getMostPriceInAuctionBid
+// );
+
+
 module.exports = router;

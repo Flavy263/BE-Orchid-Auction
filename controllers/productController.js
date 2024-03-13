@@ -37,6 +37,28 @@ exports.getAllProduct = (req, res, next) => {
     .catch((err) => next(err));
 };
 
+
+exports.getProductsCreatedToday = async (req, res) => {
+  try {
+    const requestedDate = new Date(req.params.date);
+    const startOfDay = new Date(requestedDate.getFullYear(), requestedDate.getMonth(), requestedDate.getDate());
+    const endOfDay = new Date(requestedDate.getFullYear(), requestedDate.getMonth(), requestedDate.getDate() + 1);
+
+    // Sử dụng Mongoose để đếm số lượng sản phẩm được tạo trong ngày cụ thể
+    const productCount = await Product.countDocuments({
+      timestamp: { $gte: startOfDay, $lt: endOfDay }
+    }).exec();
+
+    res.json({ productCount });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+
+
+
 exports.getProductByUserID = (req, res, next) => {
   const userId = req.params.userId;
   Product.find({ host_id: userId })
@@ -62,7 +84,7 @@ exports.postAddProduct = async (req, res) => {
     if (!req.files || !req.files["image"] || !req.files["video"]) {
       return res.status(400).json({ error: "No image or video uploaded." });
     }
-
+    
     // Sử dụng thông tin từ đối tượng result trực tiếp
     const imageUrls = req.files["image"].map((image) => image.path);
     const videoUrls = req.files["video"].map((video) => video.path);
