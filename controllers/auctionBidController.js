@@ -102,6 +102,22 @@ exports.handleFindMaxPrice = async (req, res, next) => {
   }
 };
 
+exports.getAuctionBidSortDes = async (req, res) => {
+  try {
+    const auctionId = req.params.auctionId;
+
+    // Sử dụng Mongoose để lấy tất cả auction_bid của auction đó và sắp xếp theo giảm dần của giá
+    const auctionBids = await AuctionBid.find({ auction_id: auctionId })
+      .sort({ price: -1 }) // Sắp xếp theo giảm dần của giá
+      .exec();
+
+    res.json(auctionBids);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
 // const handleNewBid = async () => {
 //   try {
 //     // Thực hiện các kiểm tra cần thiết trước khi gửi yêu cầu đặt giá mới, nếu có
