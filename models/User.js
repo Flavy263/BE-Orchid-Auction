@@ -47,10 +47,11 @@ const userSchema = new Schema(
         ref: "Role",
         required: true,
     },
+    timestamp: {
+      type: Date,
+      default: Date.now,
+    },
   },
-  {
-    timestamps: true,
-  }
 );
 userSchema.plugin(passportLocalMongoose);
 
