@@ -28,6 +28,25 @@ router.get(
   authenticateJWT,
   auctionController.getAuctionaAuctioned
 );
+
+router.get(
+  "/getAuctionCountToday",
+  authenticateJWT,
+  auctionController.getAuctionCountToday
+);
+
+router.get(
+  "/getAuctionCountYesterday",
+  authenticateJWT,
+  auctionController.getAuctionCountYesterday
+);
+
+router.get(
+  "/getAuctionCountTwodayAgo",
+  authenticateJWT,
+  auctionController.getAuctionCountTwodayAgo
+);
+
 router.get("/:host_id", authenticateJWT, auctionController.getAuctionByUserId);
 router.get(
   "/not-yet/:host_id",

@@ -134,18 +134,18 @@ exports.getAllAuction = (req, res, next) => {
 
 exports.createAuction = async (req, res, next) => {
   try {
-    console.log("req",req.body);
+    console.log("req", req.body);
     const product_id = req.body.product_id;
 
     const wallet = await Wallets.findOne({ user_id: req.body.host_id });
     console.log(wallet);
-    
+
     if (!wallet) {
       return res.status(400).json({ error: "User has no wallet!" });
     }
 
     const config = await Config.findOne({ type_config: "Create auction" });
-    console.log("money",config);
+    console.log("money", config);
     if (wallet.balance < config.money) {
       return res
         .status(400)
@@ -193,7 +193,6 @@ exports.createAuction = async (req, res, next) => {
     //   console.error("Error occurred while creating AuctionBid:", auctionBidError);
     //   // You can choose to send an appropriate response here
     // }
-    
 
     // Kiểm tra xem sản phẩm có tồn tại và được cập nhật không
     if (updatedProduct) {
@@ -758,15 +757,103 @@ exports.getMostPriceInAuctionBid = async (req, res, next) => {
 exports.getAuctionsCreatedToday = async (req, res) => {
   try {
     const requestedDate = new Date(req.params.date);
-    const startOfDay = new Date(requestedDate.getFullYear(), requestedDate.getMonth(), requestedDate.getDate());
-    const endOfDay = new Date(requestedDate.getFullYear(), requestedDate.getMonth(), requestedDate.getDate() + 1);
+    const startOfDay = new Date(
+      requestedDate.getFullYear(),
+      requestedDate.getMonth(),
+      requestedDate.getDate()
+    );
+    const endOfDay = new Date(
+      requestedDate.getFullYear(),
+      requestedDate.getMonth(),
+      requestedDate.getDate() + 1
+    );
 
     // Sử dụng Mongoose để đếm số lượng sản phẩm được tạo trong ngày cụ thể
     const productCount = await Product.countDocuments({
-      timestamp: { $gte: startOfDay, $lt: endOfDay }
+      timestamp: { $gte: startOfDay, $lt: endOfDay },
     }).exec();
 
     res.json({ productCount });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.getAuctionCountToday = async (req, res) => {
+  try {
+    const today = new Date();
+    const startOfDay = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate()
+    );
+    const endOfDay = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate() + 1
+    );
+
+    // Sử dụng Mongoose để đếm số lượng phiên đấu giá được tạo trong ngày hôm nay
+    const auctionCount = await Auctions.countDocuments({
+      timestamp: { $gte: startOfDay, $lt: endOfDay },
+    }).exec();
+
+    res.json({ auctionCount });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.getAuctionCountYesterday = async (req, res) => {
+  try {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const startOfYesterday = new Date(
+      yesterday.getFullYear(),
+      yesterday.getMonth(),
+      yesterday.getDate()
+    );
+    const endOfYesterday = new Date(
+      yesterday.getFullYear(),
+      yesterday.getMonth(),
+      yesterday.getDate() + 1
+    );
+
+    // Sử dụng Mongoose để đếm số lượng phiên đấu giá được tạo trong ngày hôm qua
+    const auctionCount = await Auctions.countDocuments({
+      timestamp: { $gte: startOfYesterday, $lt: endOfYesterday },
+    }).exec();
+
+    res.json({ auctionCount });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.getAuctionCountTwodayAgo = async (req, res) => {
+  try {
+    const twoDayAgo = new Date();
+    twoDayAgo.setDate(twoDayAgo.getDate() - 2);
+    const startOfYesterday = new Date(
+      twoDayAgo.getFullYear(),
+      twoDayAgo.getMonth(),
+      twoDayAgo.getDate()
+    );
+    const endOfYesterday = new Date(
+      twoDayAgo.getFullYear(),
+      twoDayAgo.getMonth(),
+      twoDayAgo.getDate() + 1
+    );
+
+    // Sử dụng Mongoose để đếm số lượng phiên đấu giá được tạo trong ngày hôm qua
+    const auctionCount = await Auctions.countDocuments({
+      timestamp: { $gte: startOfYesterday, $lt: endOfYesterday },
+    }).exec();
+
+    res.json({ auctionCount });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
