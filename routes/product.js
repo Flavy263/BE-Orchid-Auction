@@ -44,12 +44,19 @@ router.get("/", productController.getAllProduct);
 
 router.get("/ProductToday/:date", productController.getProductsCreatedToday);
 
+router.get("/ProductCount", productController.getProductCount);
+
+router.get("/UnAuctionedProductCount", productController.getUnAuctionedProductCount);
+
+router.get("/AuctionedProductCount", productController.getAuctionedProductCount);
+
 router.get("/:userId", authenticateJWT, productController.getProductByUserID);
 
 // method put update product
 router.put("/:productId", authenticateJWT, productController.putUpdateProduct);
 // method delete product
 router.delete("/:productId", authenticateJWT, productController.deleteProduct);
+
 
 
 

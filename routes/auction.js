@@ -28,7 +28,15 @@ router.get(
   authenticateJWT,
   auctionController.getAuctionaAuctioned
 );
+
+router.get("/AuctionCount", auctionController.getAuctionCount);
+router.get("/AboutToAuctionCount", auctionController.getAboutToAuctionCount);
+router.get("/AuctioningAuctionCount", auctionController.getAuctioningAuctionCount);
+router.get("/NotYetAuctionCount", auctionController.getNotYetAuctionCount);
+router.get("/AuctionedAuctionCount", auctionController.getAuctionedAuctionCount);
+
 router.get("/:host_id", authenticateJWT, auctionController.getAuctionByUserId);
+
 router.get(
   "/not-yet/:host_id",
   authenticateJWT,
@@ -123,6 +131,10 @@ router.get(
 );
 
 router.get("/AuctionToday/:date", auctionController.getAuctionsCreatedToday);
+
+
+
+
 // router.get(
 //   "/AuctionToday",
 //   authenticateJWT,

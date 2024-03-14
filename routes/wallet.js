@@ -7,6 +7,9 @@ const passport = require("passport");
 const authenticateJWT = passport.authenticate("jwt", { session: false });
 
 router.get("/", authenticateJWT, walletController.getWallet);
+router.get("/DepositCount", walletController.getDepositCount);
+router.get("/WithdrawCount", walletController.getWithdrawCount);
+
 router.get(
   "/walletHistory",
   authenticateJWT,

@@ -161,3 +161,33 @@ exports.deleteProduct = (req, res, next) => {
     })
     .catch((err) => next(err));
 };
+
+exports.getProductCount  = async (req, res, next) =>{
+  try {
+    const productCount = await Product.countDocuments().exec(); 
+    res.json({ productCount });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.getUnAuctionedProductCount = async (req, res, next) =>{
+  try {
+    const Count = await Product.countDocuments({ status: false }).exec(); // Đếm số lượng sản phẩm có trạng thái là false
+    res.json({ Count });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.getAuctionedProductCount = async (req, res, next) =>{
+  try {
+    const Count = await Product.countDocuments({ status: true }).exec(); // Đếm số lượng sản phẩm có trạng thái là false
+    res.json({ Count });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};

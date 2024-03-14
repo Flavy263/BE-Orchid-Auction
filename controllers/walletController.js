@@ -303,3 +303,27 @@ exports.getWalletHistoryByUserID = async (req, res, next) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+exports.getDepositCount = async (req, res, next) => {
+  try {
+    const type = "deposit";
+    const count = await WalletHistorys.countDocuments({ type:  type}).exec();
+
+    res.json({ count });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.getWithdrawCount = async (req, res, next) => {
+  try {
+    const type = "withdraw";
+    const count = await WalletHistorys.countDocuments({ type:  type}).exec();
+    console.log(count);
+    res.json({ count });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};

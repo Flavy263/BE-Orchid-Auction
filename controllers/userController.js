@@ -4,6 +4,8 @@ const passport = require("passport");
 const bcrypt = require("bcrypt");
 const authenticate = require("../authenticate");
 const ReportRequest = require("../models/Report_Request");
+const Role = require("../models/Role");
+const Auction = require("../models/Auction");
 
 exports.uploadImg = async (req, res) => {
   try {
@@ -224,5 +226,64 @@ exports.banUserByID = async (req, res) => {
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+exports.getMemberCount = async (req, res, next) => {
+  try {
+    // Tìm vai trò "Member"
+    const memberRole = await Role.findOne({ title: "Member" }).exec();
+
+    // Nếu không tìm thấy vai trò, trả về số lượng người dùng là 0
+    if (!memberRole) {
+      res.json({ memberCount: 0 });
+      return;
+    }
+
+    // Đếm số lượng người dùng có role_id trùng với ObjectId của vai trò "Member"
+    const memberCount = await User.countDocuments({ role_id: memberRole._id }).exec();
+    const Count = await Auction.countDocuments().exec(); 
+
+    res.json({ memberCount });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.getHostCount = async (req, res, next) => {
+  try {
+    // Tìm vai trò "Member"
+    const memberRole = await Role.findOne({ title: "Host" }).exec();
+
+    // Nếu không tìm thấy vai trò, trả về số lượng người dùng là 0
+    if (!memberRole) {
+      res.json({ memberCount: 0 });
+      return;
+    }
+
+    // Đếm số lượng người dùng có role_id trùng với ObjectId của vai trò "Member"
+    const memberCount = await User.countDocuments({ role_id: memberRole._id }).exec();
+
+    res.json({ memberCount });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+exports.getAgvMemberAuction = async (req, res, next) => {
+  try {
+    const memberRole = await Role.findOne({ title: "Member" }).exec();
+    if (!memberRole) {
+      res.json({ memberCount: 0 });
+      return;
+    }
+    const memberCount = await User.countDocuments({ role_id: memberRole._id }).exec();
+    const auctionCount = await Auction.countDocuments({}).exec();
+    const avgCount = memberCount/auctionCount;
+    res.json({ avgCount });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
