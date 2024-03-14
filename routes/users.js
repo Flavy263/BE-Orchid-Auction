@@ -43,6 +43,18 @@ router.post("/register", upload.single("image"), userController.postAddUser);
 
 router.post("/login", userController.postLoginUser);
 
+router.get("/getMemberCountToday", authenticateJWT, userController.getMemberCountToday);
+
+router.get("/getHostCountToday", authenticateJWT, userController.getHostCountToday);
+
+router.get("/getMemberCountYesterday", authenticateJWT, userController.getMemberCountYesterday);
+
+router.get("/getHostCountYesterday", authenticateJWT, userController.getHostCountYesterday);
+
+router.get("/getMemberCountTwodayAgo", authenticateJWT, userController.getMemberCountTwodayAgo);
+
+router.get("/getHostCountTwodayAgo", authenticateJWT, userController.getHostCountTwodayAgo);
+
 router.get("/userid/:userid", userController.getUserById);
 
 router.get("/username/:userName", userController.getUserByUsername);

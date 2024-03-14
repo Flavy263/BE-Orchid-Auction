@@ -29,6 +29,43 @@ router.get(
   auctionController.getAuctionaAuctioned
 );
 
+router.get(
+  "/getAuctionCountToday",
+  authenticateJWT,
+  auctionController.getAuctionCountToday
+);
+
+router.get(
+  "/getAuctionCountYesterday",
+  authenticateJWT,
+  auctionController.getAuctionCountYesterday
+);
+
+router.get(
+  "/getAuctionCountTwodayAgo",
+  authenticateJWT,
+  auctionController.getAuctionCountTwodayAgo
+);
+
+router.get(
+  "/getAverageAuctionMembersToday",
+  authenticateJWT,
+  auctionController.getAverageAuctionMembersToday
+);
+
+router.get(
+  "/getAverageAuctionMembersYesterday",
+  authenticateJWT,
+  auctionController.getAverageAuctionMembersYesterday
+);
+
+router.get(
+  "/getAverageAuctionMembersTwodayAgo",
+  authenticateJWT,
+  auctionController.getAverageAuctionMembersTwodayAgo
+);
+
+
 router.get("/AuctionCount", auctionController.getAuctionCount);
 router.get("/AboutToAuctionCount", auctionController.getAboutToAuctionCount);
 router.get("/AuctioningAuctionCount", auctionController.getAuctioningAuctionCount);
