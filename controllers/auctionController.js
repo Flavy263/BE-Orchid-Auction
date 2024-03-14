@@ -837,12 +837,12 @@ exports.getAuctionCountTwodayAgo = async (req, res) => {
   try {
     const twoDayAgo = new Date();
     twoDayAgo.setDate(twoDayAgo.getDate() - 2);
-    const startOfYesterday = new Date(
+    const startOfTwoDayAgo = new Date(
       twoDayAgo.getFullYear(),
       twoDayAgo.getMonth(),
       twoDayAgo.getDate()
     );
-    const endOfYesterday = new Date(
+    const endOfTwoDayAgo = new Date(
       twoDayAgo.getFullYear(),
       twoDayAgo.getMonth(),
       twoDayAgo.getDate() + 1
@@ -850,10 +850,115 @@ exports.getAuctionCountTwodayAgo = async (req, res) => {
 
     // Sử dụng Mongoose để đếm số lượng phiên đấu giá được tạo trong ngày hôm qua
     const auctionCount = await Auctions.countDocuments({
-      timestamp: { $gte: startOfYesterday, $lt: endOfYesterday },
+      timestamp: { $gte: startOfTwoDayAgo, $lt: endOfTwoDayAgo },
     }).exec();
 
     res.json({ auctionCount });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.getAverageAuctionMembersToday = async (req, res) => {
+  try {
+    const today = new Date();
+    const startOfDay = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate()
+    );
+    const endOfDay = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate() + 1
+    );
+
+    // Sử dụng Mongoose để tính số lượng thành viên tham gia vào các phiên đấu giá trong hôm nay
+    const totalMembers = await AuctionMember.countDocuments({
+      timestamp: { $gte: startOfDay, $lt: endOfDay },
+    }).exec();
+
+    // Sử dụng Mongoose để lọc và đếm số phiên đấu giá mà có ít nhất một thành viên đăng ký trong ngày hôm nay
+    const registeredAuctionCount = await AuctionMember.distinct("auction_id", {
+      timestamp: { $gte: startOfDay, $lt: endOfDay },
+    }).exec();
+
+    // Tính số trung bình thành viên tham gia
+    const averageMembers = totalMembers / registeredAuctionCount.length;
+
+    res.json({ averageMembers });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.getAverageAuctionMembersYesterday = async (req, res) => {
+  try {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const startOfYesterday = new Date(
+      yesterday.getFullYear(),
+      yesterday.getMonth(),
+      yesterday.getDate()
+    );
+    const endOfYesterday = new Date(
+      yesterday.getFullYear(),
+      yesterday.getMonth(),
+      yesterday.getDate() + 1
+    );
+
+    // Sử dụng Mongoose để tính số lượng thành viên tham gia vào các phiên đấu giá trong hôm nay
+    const totalMembers = await AuctionMember.countDocuments({
+      timestamp: { $gte: startOfYesterday, $lt: endOfYesterday },
+    }).exec();
+
+    // Sử dụng Mongoose để lọc và đếm số phiên đấu giá mà có ít nhất một thành viên đăng ký trong ngày hôm nay
+    const registeredAuctionCount = await AuctionMember.distinct("auction_id", {
+      timestamp: { $gte: startOfYesterday, $lt: endOfYesterday },
+    }).exec();
+
+    // Tính số trung bình thành viên tham gia
+    const averageMembers = totalMembers / registeredAuctionCount.length;
+
+    res.json({ averageMembers });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.getAverageAuctionMembersTwodayAgo = async (req, res) => {
+  try {
+    const twoDayAgo = new Date();
+    twoDayAgo.setDate(twoDayAgo.getDate() - 2);
+    const startOfTwoDayAgo = new Date(
+      twoDayAgo.getFullYear(),
+      twoDayAgo.getMonth(),
+      twoDayAgo.getDate()
+    );
+    const endOfTwoDayAgo = new Date(
+      twoDayAgo.getFullYear(),
+      twoDayAgo.getMonth(),
+      twoDayAgo.getDate() + 1
+    );
+
+
+    // Sử dụng Mongoose để tính số lượng thành viên tham gia vào các phiên đấu giá trong hôm nay
+    const totalMembers = await AuctionMember.countDocuments({
+      timestamp: { $gte: startOfTwoDayAgo, $lt: endOfTwoDayAgo },
+    }).exec();
+
+    // Sử dụng Mongoose để lọc và đếm số phiên đấu giá mà có ít nhất một thành viên đăng ký trong ngày hôm nay
+    const registeredAuctionCount = await AuctionMember.distinct("auction_id", {
+      timestamp: { $gte: startOfTwoDayAgo, $lt: endOfTwoDayAgo },
+    }).exec();
+
+    // Tính số trung bình thành viên tham gia
+    const averageMembers = totalMembers / registeredAuctionCount.length;
+
+    res.json({ averageMembers });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });

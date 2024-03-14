@@ -47,6 +47,24 @@ router.get(
   auctionController.getAuctionCountTwodayAgo
 );
 
+router.get(
+  "/getAverageAuctionMembersToday",
+  authenticateJWT,
+  auctionController.getAverageAuctionMembersToday
+);
+
+router.get(
+  "/getAverageAuctionMembersYesterday",
+  authenticateJWT,
+  auctionController.getAverageAuctionMembersYesterday
+);
+
+router.get(
+  "/getAverageAuctionMembersTwodayAgo",
+  authenticateJWT,
+  auctionController.getAverageAuctionMembersTwodayAgo
+);
+
 router.get("/:host_id", authenticateJWT, auctionController.getAuctionByUserId);
 router.get(
   "/not-yet/:host_id",
