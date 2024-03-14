@@ -329,3 +329,255 @@ exports.getWalletHistoryByDate = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+exports.totalDepositAmountToday = async (req, res) => {
+  try {
+    // Lấy ngày hôm nay
+    const today = new Date();
+    const startOfToday = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate()
+    );
+    const endOfToday = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate() + 1
+    );
+
+    // Sử dụng Mongoose để tính tổng số tiền nạp vào trong ngày hôm nay
+    const totalDepositAmount = await WalletHistorys.aggregate([
+      {
+        $match: {
+          type: "deposit",
+          timestamp: { $gte: startOfToday, $lt: endOfToday },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalAmount: { $sum: "$amount" },
+        },
+      },
+    ]);
+
+    // Nếu không có giao dịch nạp vào trong ngày hôm nay, trả về 0
+    const totalAmount =
+      totalDepositAmount.length > 0 ? totalDepositAmount[0].totalAmount : 0;
+
+    res.json({ totalDepositAmount: totalAmount });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.totalWithdrawAmountToday = async (req, res) => {
+  try {
+    // Lấy ngày hôm nay
+    const today = new Date();
+    const startOfToday = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate()
+    );
+    const endOfToday = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate() + 1
+    );
+
+    // Sử dụng Mongoose để tính tổng số tiền nạp vào trong ngày hôm nay
+    const totalWithdrawAmount = await WalletHistorys.aggregate([
+      {
+        $match: {
+          type: "withdraw",
+          timestamp: { $gte: startOfToday, $lt: endOfToday },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalAmount: { $sum: "$amount" },
+        },
+      },
+    ]);
+
+    // Nếu không có giao dịch nạp vào trong ngày hôm nay, trả về 0
+    const totalAmount =
+      totalWithdrawAmount.length > 0 ? totalWithdrawAmount[0].totalAmount : 0;
+
+    res.json({ totalWithdrawAmount: totalAmount });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.totalDepositAmountYesterday = async (req, res) => {
+  try {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const startOfYesterday = new Date(
+      yesterday.getFullYear(),
+      yesterday.getMonth(),
+      yesterday.getDate()
+    );
+    const endOfYesterday = new Date(
+      yesterday.getFullYear(),
+      yesterday.getMonth(),
+      yesterday.getDate() + 1
+    );
+
+    // Sử dụng Mongoose để tính tổng số tiền nạp vào trong ngày hôm nay
+    const totalDepositAmount = await WalletHistorys.aggregate([
+      {
+        $match: {
+          type: "deposit",
+          timestamp: { $gte: startOfYesterday, $lt: endOfYesterday },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalAmount: { $sum: "$amount" },
+        },
+      },
+    ]);
+
+    // Nếu không có giao dịch nạp vào trong ngày hôm nay, trả về 0
+    const totalAmount =
+      totalDepositAmount.length > 0 ? totalDepositAmount[0].totalAmount : 0;
+
+    res.json({ totalDepositAmount: totalAmount });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.totalWithdrawAmountYesterday = async (req, res) => {
+  try {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const startOfYesterday = new Date(
+      yesterday.getFullYear(),
+      yesterday.getMonth(),
+      yesterday.getDate()
+    );
+    const endOfYesterday = new Date(
+      yesterday.getFullYear(),
+      yesterday.getMonth(),
+      yesterday.getDate() + 1
+    );
+
+    // Sử dụng Mongoose để tính tổng số tiền nạp vào trong ngày hôm nay
+    const totalWithdrawAmount = await WalletHistorys.aggregate([
+      {
+        $match: {
+          type: "withdraw",
+          timestamp: { $gte: startOfYesterday, $lt: endOfYesterday },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalAmount: { $sum: "$amount" },
+        },
+      },
+    ]);
+
+    // Nếu không có giao dịch nạp vào trong ngày hôm nay, trả về 0
+    const totalAmount =
+      totalWithdrawAmount.length > 0 ? totalWithdrawAmount[0].totalAmount : 0;
+
+    res.json({ totalWithdrawAmount: totalAmount });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.totalDepositAmountTwodayAgo = async (req, res) => {
+  try {
+    const twoDayAgo = new Date();
+    twoDayAgo.setDate(twoDayAgo.getDate() - 2);
+    const startOfTwoDayAgo = new Date(
+      twoDayAgo.getFullYear(),
+      twoDayAgo.getMonth(),
+      twoDayAgo.getDate()
+    );
+    const endOfTwoDayAgo = new Date(
+      twoDayAgo.getFullYear(),
+      twoDayAgo.getMonth(),
+      twoDayAgo.getDate() + 1
+    );
+
+    // Sử dụng Mongoose để tính tổng số tiền nạp vào trong ngày hôm nay
+    const totalDepositAmount = await WalletHistorys.aggregate([
+      {
+        $match: {
+          type: "deposit",
+          timestamp: { $gte: startOfTwoDayAgo, $lt: endOfTwoDayAgo },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalAmount: { $sum: "$amount" },
+        },
+      },
+    ]);
+
+    // Nếu không có giao dịch nạp vào trong ngày hôm nay, trả về 0
+    const totalAmount =
+      totalDepositAmount.length > 0 ? totalDepositAmount[0].totalAmount : 0;
+
+    res.json({ totalDepositAmount: totalAmount });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.totalWithdrawAmountTwodayAgo = async (req, res) => {
+  try {
+    const twoDayAgo = new Date();
+    twoDayAgo.setDate(twoDayAgo.getDate() - 2);
+    const startOfTwoDayAgo = new Date(
+      twoDayAgo.getFullYear(),
+      twoDayAgo.getMonth(),
+      twoDayAgo.getDate()
+    );
+    const endOfTwoDayAgo = new Date(
+      twoDayAgo.getFullYear(),
+      twoDayAgo.getMonth(),
+      twoDayAgo.getDate() + 1
+    );
+
+    // Sử dụng Mongoose để tính tổng số tiền nạp vào trong ngày hôm nay
+    const totalWithdrawAmount = await WalletHistorys.aggregate([
+      {
+        $match: {
+          type: "withdraw",
+          timestamp: { $gte: startOfTwoDayAgo, $lt: endOfTwoDayAgo },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalAmount: { $sum: "$amount" },
+        },
+      },
+    ]);
+
+    // Nếu không có giao dịch nạp vào trong ngày hôm nay, trả về 0
+    const totalAmount =
+      totalWithdrawAmount.length > 0 ? totalWithdrawAmount[0].totalAmount : 0;
+
+    res.json({ totalWithdrawAmount: totalAmount });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
