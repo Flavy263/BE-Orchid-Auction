@@ -138,13 +138,14 @@ exports.createAuction = async (req, res, next) => {
     const product_id = req.body.product_id;
 
     const wallet = await Wallets.findOne({ user_id: req.body.host_id });
-
+    console.log(wallet);
     
     if (!wallet) {
       return res.status(400).json({ error: "User has no wallet!" });
     }
 
     const config = await Config.findOne({ type_config: "Create auction" });
+    console.log("money",config);
     if (wallet.balance < config.money) {
       return res
         .status(400)
@@ -751,5 +752,23 @@ exports.getMostPriceInAuctionBid = async (req, res, next) => {
     }
   } catch (err) {
     next(err);
+  }
+};
+
+exports.getAuctionsCreatedToday = async (req, res) => {
+  try {
+    const requestedDate = new Date(req.params.date);
+    const startOfDay = new Date(requestedDate.getFullYear(), requestedDate.getMonth(), requestedDate.getDate());
+    const endOfDay = new Date(requestedDate.getFullYear(), requestedDate.getMonth(), requestedDate.getDate() + 1);
+
+    // Sử dụng Mongoose để đếm số lượng sản phẩm được tạo trong ngày cụ thể
+    const productCount = await Product.countDocuments({
+      timestamp: { $gte: startOfDay, $lt: endOfDay }
+    }).exec();
+
+    res.json({ productCount });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
