@@ -8,4 +8,5 @@ const router = express.Router();
 router.post('/:auctionId/:customerId/new-bid', auctionBidController.handleNewBid);
 
 router.get('/auctionBid/:auctionId',auctionBidController.handleFindMaxPrice)
+router.get('/auctionBid-sortDes/:auctionId',auctionBidController.getAuctionBidSortDes)
 module.exports = router;

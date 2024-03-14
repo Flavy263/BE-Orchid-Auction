@@ -1,10 +1,10 @@
 // controllers/auctionController.js
 
-const Auction = require('../models/Auction');
-const AuctionBid = require('../models/Auction_Bid');
-const moment = require('moment');
-const User = require('../models/User');
-const Wallet = require('../models/Wallet')
+const Auction = require("../models/Auction");
+const AuctionBid = require("../models/Auction_Bid");
+const moment = require("moment");
+const User = require("../models/User");
+const Wallet = require("../models/Wallet");
 
 exports.handleCheckPrice = async (priceStep, customerPrice, auctionPrice) => {
   try {
@@ -12,10 +12,8 @@ exports.handleCheckPrice = async (priceStep, customerPrice, auctionPrice) => {
       return false;
     }
     return true;
-  } catch (error) {
-
-  }
-}
+  } catch (error) {}
+};
 
 // Handle new bid
 exports.handleNewBid = async (req, res) => {
@@ -27,13 +25,14 @@ exports.handleNewBid = async (req, res) => {
     console.log("price", price);
     const auction = await Auction.findById(auctionId);
     const customer = await User.findById(customerId);
-    const auctionBid = await AuctionBid.findById(auctionId);
+    const auctionBid = await AuctionBid.find({ auction_id: auctionId });
     const customerWallet = await Wallet.find({ user_id: customerId })
+    console.log("bid", auctionBid);
     if (!auctionBid) {
-      throw new Error('AuctionBid not found');
+      throw new Error("AuctionBid not found");
     }
     if (!auction) {
-      throw new Error('Auction not found');
+      throw new Error("Auction not found");
     }
 
     // Check if the current time is within the registration period
@@ -41,18 +40,24 @@ exports.handleNewBid = async (req, res) => {
     const registrationEndTime = moment(auction.registration_end_time);
 
     if (currentTime.isAfter(registrationEndTime)) {
-      throw new Error('Bidding registration period has ended');
+      throw new Error("Bidding registration period has ended");
     }
 
     // viết hàm await giúp tui tìm giá tiền lớn nhất ở bản AuctionBid dựa trên auctionId và chỉ trề maxPrice có biên let maxPrice
     // và dùng maxPrice này ràng vào this.handleFindMaxPrice(auctionBid.price)
     // kiểm tra xem số tiền có phải bội của bước giá hay không
-    const maxBid = await AuctionBid.findOne({ auction_id: auctionId }).sort({ price: -1 });
+    const maxBid = await AuctionBid.findOne({ auction_id: auctionId }).sort({
+      price: -1,
+    });
 
-    const maxPrice = maxBid ? maxBid.price : 0;
+    // const maxPrice = maxBid ? maxBid.price : 0;
+    // console.log("maxPid", maxBid);
+    if (price < maxBid.price) {
+      throw new Error(`Không dc nhập số tiền nhỏ hơn hoặc bằng ${maxBid.price}`);
 
+    }
     // Kiểm tra xem giá mới có phải là bội của bước giá không
-    if ((price - maxPrice) % auction.price_step !== 0) {
+    if ((price - maxBid.price) % auction.price_step !== 0) {
       throw new Error('Price is not a multiple of the price step');
     }
 
@@ -64,41 +69,60 @@ exports.handleNewBid = async (req, res) => {
     });
 
     await newBid.save();
-    req.app.get('socketio').emit('bidAccepted', newBid);
-    res.status(200).json({ success: true, message: 'Bid accepted successfully' });
-
+    req.app.get("socketio").emit("bidAccepted", newBid);
+    res
+      .status(200)
+      .json({ success: true, message: "Bid accepted successfully" });
   } catch (error) {
-    req.app.get('socketio').emit('bidRejected', { error: error.message });
+    req.app.get("socketio").emit("bidRejected", { error: error.message });
     res.status(400).json({ success: false, error: error.message });
   }
 };
-
-
 
 exports.handleFindMaxPrice = async (req, res, next) => {
   try {
     const auctionId = req.params.auctionId; // Lấy auctionId từ request parameters
     const maxPriceAuctionBids = await AuctionBid.aggregate([
       {
-        $match: { auction_id: mongoose.Types.ObjectId(auctionId) } // Lọc dữ liệu cho auction_id cụ thể
+        $match: { auction_id: mongoose.Types.ObjectId(auctionId) }, // Lọc dữ liệu cho auction_id cụ thể
       },
       {
-        $sort: { price: -1, create_time: -1 } // Sắp xếp giảm dần theo price và create_time
+        $sort: { price: -1, create_time: -1 }, // Sắp xếp giảm dần theo price và create_time
       },
       {
         $group: {
           _id: "$auction_id",
-          maxPriceAuctionBid: { $first: "$$ROOT" } // Lấy bản ghi đầu tiên sau khi sắp xếp
-        }
+          maxPriceAuctionBid: { $first: "$$ROOT" }, // Lấy bản ghi đầu tiên sau khi sắp xếp
+        },
       },
       {
-        $replaceRoot: { newRoot: "$maxPriceAuctionBid" } // Chọn lại định dạng root cho kết quả
-      }
+        $replaceRoot: { newRoot: "$maxPriceAuctionBid" }, // Chọn lại định dạng root cho kết quả
+      },
     ]);
     res.status(200).json(maxPriceAuctionBids); // Trả về kết quả
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' }); // Trả về lỗi nếu có
+    res.status(500).json({ error: "Internal Server Error" }); // Trả về lỗi nếu có
+  }
+};
+
+exports.getAuctionBidSortDes = async (req, res) => {
+  try {
+    const auctionId = req.params.auctionId;
+
+    // Sử dụng Mongoose để lấy tất cả auction_bid của auction đó và sắp xếp theo giảm dần của giá
+    const auctionBids = await AuctionBid.find({ auction_id: auctionId })
+      .sort({ price: -1 }) // Sắp xếp theo giảm dần của giá
+      .exec();
+
+    if (auctionBids.length > 1) {
+      auctionBids.pop(); // Loại bỏ bản ghi cuối cùng, có giá nhỏ nhất
+    }
+
+    res.json(auctionBids);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
@@ -169,7 +193,6 @@ exports.handleFindMaxPrice = async (req, res, next) => {
 // );
 // };
 
-
 // -------------------------------
 // const handleNewBid = async () => {
 //   try {
@@ -201,5 +224,3 @@ exports.handleFindMaxPrice = async (req, res, next) => {
 //     // Xử lý lỗi nếu cần
 //   }
 // };
-
-

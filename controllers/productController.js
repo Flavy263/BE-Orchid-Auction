@@ -21,7 +21,8 @@ exports.uploadVideo = async (req, res) => {
 };
 
 exports.getAllProduct = (req, res, next) => {
-  Product.find({}).populate("host_id")
+  Product.find({})
+    .populate("host_id")
     .then((products) => {
       if (!products || products.length === 0) {
         // Nếu không có sản phẩm nào thỏa mãn điều kiện, trả về thông báo hoặc mã lỗi
@@ -36,6 +37,28 @@ exports.getAllProduct = (req, res, next) => {
     })
     .catch((err) => next(err));
 };
+
+
+exports.getProductsCreatedToday = async (req, res) => {
+  try {
+    const requestedDate = new Date(req.params.date);
+    const startOfDay = new Date(requestedDate.getFullYear(), requestedDate.getMonth(), requestedDate.getDate());
+    const endOfDay = new Date(requestedDate.getFullYear(), requestedDate.getMonth(), requestedDate.getDate() + 1);
+
+    // Sử dụng Mongoose để đếm số lượng sản phẩm được tạo trong ngày cụ thể
+    const productCount = await Product.countDocuments({
+      timestamp: { $gte: startOfDay, $lt: endOfDay }
+    }).exec();
+
+    res.json({ productCount });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+
+
 
 exports.getProductByUserID = (req, res, next) => {
   const userId = req.params.userId;
@@ -62,7 +85,7 @@ exports.postAddProduct = async (req, res) => {
     if (!req.files || !req.files["image"] || !req.files["video"]) {
       return res.status(400).json({ error: "No image or video uploaded." });
     }
-
+    
     // Sử dụng thông tin từ đối tượng result trực tiếp
     const imageUrls = req.files["image"].map((image) => image.path);
     const videoUrls = req.files["video"].map((video) => video.path);
@@ -138,4 +161,114 @@ exports.deleteProduct = (req, res, next) => {
       });
     })
     .catch((err) => next(err));
+};
+
+exports.getProductCountToday = async (req, res) => {
+  try {
+    const today = new Date();
+    const startOfDay = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate()
+    );
+    const endOfDay = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate() + 1
+    );
+
+    // Sử dụng Mongoose để đếm số lượng sản phẩm được tạo trong ngày hôm nay
+    const productCount = await Product.countDocuments({
+      timestamp: { $gte: startOfDay, $lt: endOfDay },
+    }).exec();
+
+    res.json({ productCount });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.getProductCountYesterday = async (req, res) => {
+  try {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const startOfDay = new Date(
+      yesterday.getFullYear(),
+      yesterday.getMonth(),
+      yesterday.getDate()
+    );
+    const endOfDay = new Date(
+      yesterday.getFullYear(),
+      yesterday.getMonth(),
+      yesterday.getDate() + 1
+    );
+
+    // Sử dụng Mongoose để đếm số lượng sản phẩm được tạo trong ngày hôm qua
+    const productCountYesterday = await Product.countDocuments({
+      timestamp: { $gte: startOfDay, $lt: endOfDay },
+    }).exec();
+
+    res.json({ productCountYesterday });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.getProductCountTwodayAgo = async (req, res) => {
+  try {
+    const twoDaysAgo = new Date();
+    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+    const startOfDay = new Date(
+      twoDaysAgo.getFullYear(),
+      twoDaysAgo.getMonth(),
+      twoDaysAgo.getDate()
+    );
+    const endOfDay = new Date(
+      twoDaysAgo.getFullYear(),
+      twoDaysAgo.getMonth(),
+      twoDaysAgo.getDate() + 1
+    );
+
+    // Sử dụng Mongoose để đếm số lượng sản phẩm được tạo trước đó 2 ngày
+    const productCountTwodayAgo = await Product.countDocuments({
+      timestamp: { $gte: startOfDay, $lt: endOfDay  },
+    }).exec();
+
+    res.json({ productCountTwodayAgo });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.getProductCount  = async (req, res, next) =>{
+  try {
+    const productCount = await Product.countDocuments().exec(); 
+    res.json({ productCount });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.getUnAuctionedProductCount = async (req, res, next) =>{
+  try {
+    const Count = await Product.countDocuments({ status: false }).exec(); // Đếm số lượng sản phẩm có trạng thái là false
+    res.json({ Count });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.getAuctionedProductCount = async (req, res, next) =>{
+  try {
+    const Count = await Product.countDocuments({ status: true }).exec(); // Đếm số lượng sản phẩm có trạng thái là false
+    res.json({ Count });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 };

@@ -4,6 +4,8 @@ const passport = require("passport");
 const bcrypt = require("bcrypt");
 const authenticate = require("../authenticate");
 const ReportRequest = require("../models/Report_Request");
+const Role = require("../models/Role");
+const Auction = require("../models/Auction");
 
 exports.uploadImg = async (req, res) => {
   try {
@@ -224,5 +226,274 @@ exports.banUserByID = async (req, res) => {
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+exports.getMemberCountToday = async (req, res) => {
+  try {
+    // Lấy ngày hôm nay
+    const today = new Date();
+    const startOfToday = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate()
+    );
+    const endOfToday = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate() + 1
+    );
+
+    // Tìm role_id của vai trò "Member"
+    const memberRole = await Role.findOne({ title: "Member" }).exec();
+
+    if (!memberRole) {
+      return res.status(404).json({ error: "Role 'Member' not found" });
+    }
+
+    // Sử dụng Mongoose để đếm số người tham gia vào hệ thống với vai trò là Member trong ngày hôm nay
+    const memberCount = await User.countDocuments({
+      role_id: memberRole._id,
+      timestamp: { $gte: startOfToday, $lt: endOfToday },
+    }).exec();
+
+    res.json({ memberCount });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.getHostCountToday = async (req, res) => {
+  try {
+    // Lấy ngày hôm nay
+    const today = new Date();
+    const startOfToday = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate()
+    );
+    const endOfToday = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate() + 1
+    );
+
+    // Tìm role_id của vai trò "Member"
+    const userRole = await Role.findOne({ title: "Host" }).exec();
+
+    if (!userRole) {
+      return res.status(404).json({ error: "Role 'Host' not found" });
+    }
+
+    // Sử dụng Mongoose để đếm số người tham gia vào hệ thống với vai trò là Member trong ngày hôm nay
+    const userCount = await User.countDocuments({
+      role_id: userRole._id,
+      timestamp: { $gte: startOfToday, $lt: endOfToday },
+    }).exec();
+
+    res.json({ userCount });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.getMemberCountYesterday = async (req, res) => {
+  try {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const startOfYesterday = new Date(
+      yesterday.getFullYear(),
+      yesterday.getMonth(),
+      yesterday.getDate()
+    );
+    const endOfYesterday = new Date(
+      yesterday.getFullYear(),
+      yesterday.getMonth(),
+      yesterday.getDate() + 1
+    );
+
+    // Tìm role_id của vai trò "Member"
+    const userRole = await Role.findOne({ title: "Member" }).exec();
+
+    if (!userRole) {
+      return res.status(404).json({ error: "Role 'Member' not found" });
+    }
+
+    // Sử dụng Mongoose để đếm số người tham gia vào hệ thống với vai trò là Member trong ngày hôm nay
+    const userCount = await User.countDocuments({
+      role_id: userRole._id,
+      timestamp: { $gte: startOfYesterday, $lt: endOfYesterday },
+    }).exec();
+
+    res.json({ userCount });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.getHostCountYesterday = async (req, res) => {
+  try {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const startOfYesterday = new Date(
+      yesterday.getFullYear(),
+      yesterday.getMonth(),
+      yesterday.getDate()
+    );
+    const endOfYesterday = new Date(
+      yesterday.getFullYear(),
+      yesterday.getMonth(),
+      yesterday.getDate() + 1
+    );
+
+    // Tìm role_id của vai trò "Member"
+    const userRole = await Role.findOne({ title: "Host" }).exec();
+
+    if (!userRole) {
+      return res.status(404).json({ error: "Role 'Host' not found" });
+    }
+
+    // Sử dụng Mongoose để đếm số người tham gia vào hệ thống với vai trò là Member trong ngày hôm nay
+    const userCount = await User.countDocuments({
+      role_id: userRole._id,
+      timestamp: { $gte: startOfYesterday, $lt: endOfYesterday },
+    }).exec();
+
+    res.json({ userCount });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.getMemberCountTwodayAgo = async (req, res) => {
+  try {
+    const twoDayAgo = new Date();
+    twoDayAgo.setDate(twoDayAgo.getDate() - 2);
+    const startOfTwoDayAgo = new Date(
+      twoDayAgo.getFullYear(),
+      twoDayAgo.getMonth(),
+      twoDayAgo.getDate()
+    );
+    const endOfTwoDayAgo = new Date(
+      twoDayAgo.getFullYear(),
+      twoDayAgo.getMonth(),
+      twoDayAgo.getDate() + 1
+    );
+
+    // Tìm role_id của vai trò "Member"
+    const userRole = await Role.findOne({ title: "Member" }).exec();
+
+    if (!userRole) {
+      return res.status(404).json({ error: "Role 'Member' not found" });
+    }
+
+    // Sử dụng Mongoose để đếm số người tham gia vào hệ thống với vai trò là Member trong ngày hôm nay
+    const userCount = await User.countDocuments({
+      role_id: userRole._id,
+      timestamp: { $gte: startOfTwoDayAgo, $lt: endOfTwoDayAgo },
+    }).exec();
+
+    res.json({ userCount });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.getHostCountTwodayAgo = async (req, res) => {
+  try {
+    const twoDayAgo = new Date();
+    twoDayAgo.setDate(twoDayAgo.getDate() - 2);
+    const startOfTwoDayAgo = new Date(
+      twoDayAgo.getFullYear(),
+      twoDayAgo.getMonth(),
+      twoDayAgo.getDate()
+    );
+    const endOfTwoDayAgo = new Date(
+      twoDayAgo.getFullYear(),
+      twoDayAgo.getMonth(),
+      twoDayAgo.getDate() + 1
+    );
+
+    // Tìm role_id của vai trò "Member"
+    const userRole = await Role.findOne({ title: "Host" }).exec();
+
+    if (!userRole) {
+      return res.status(404).json({ error: "Role 'Host' not found" });
+    }
+
+    // Sử dụng Mongoose để đếm số người tham gia vào hệ thống với vai trò là Member trong ngày hôm nay
+    const userCount = await User.countDocuments({
+      role_id: userRole._id,
+      timestamp: { $gte: startOfTwoDayAgo, $lt: endOfTwoDayAgo },
+    }).exec();
+
+    res.json({ userCount });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.getMemberCount = async (req, res, next) => {
+  try {
+    // Tìm vai trò "Member"
+    const memberRole = await Role.findOne({ title: "Member" }).exec();
+
+    // Nếu không tìm thấy vai trò, trả về số lượng người dùng là 0
+    if (!memberRole) {
+      res.json({ memberCount: 0 });
+      return;
+    }
+
+    // Đếm số lượng người dùng có role_id trùng với ObjectId của vai trò "Member"
+    const memberCount = await User.countDocuments({ role_id: memberRole._id }).exec();
+    const Count = await Auction.countDocuments().exec(); 
+
+    res.json({ memberCount });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.getHostCount = async (req, res, next) => {
+  try {
+    // Tìm vai trò "Member"
+    const memberRole = await Role.findOne({ title: "Host" }).exec();
+
+    // Nếu không tìm thấy vai trò, trả về số lượng người dùng là 0
+    if (!memberRole) {
+      res.json({ memberCount: 0 });
+      return;
+    }
+
+    // Đếm số lượng người dùng có role_id trùng với ObjectId của vai trò "Member"
+    const memberCount = await User.countDocuments({ role_id: memberRole._id }).exec();
+
+    res.json({ memberCount });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+exports.getAgvMemberAuction = async (req, res, next) => {
+  try {
+    const memberRole = await Role.findOne({ title: "Member" }).exec();
+    if (!memberRole) {
+      res.json({ memberCount: 0 });
+      return;
+    }
+    const memberCount = await User.countDocuments({ role_id: memberRole._id }).exec();
+    const auctionCount = await Auction.countDocuments({}).exec();
+    const avgCount = memberCount/auctionCount;
+    res.json({ avgCount });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
