@@ -442,7 +442,7 @@ exports.getHostCountTwodayAgo = async (req, res) => {
 exports.getMemberCount = async (req, res, next) => {
   try {
     // Tìm vai trò "Member"
-    const memberRole = await Role.findOne({ title: "Member" }).exec();
+    const memberRole = await Role.findOne({ title: "MEMBER" }).exec();
 
     // Nếu không tìm thấy vai trò, trả về số lượng người dùng là 0
     if (!memberRole) {
@@ -451,8 +451,10 @@ exports.getMemberCount = async (req, res, next) => {
     }
 
     // Đếm số lượng người dùng có role_id trùng với ObjectId của vai trò "Member"
-    const memberCount = await User.countDocuments({ role_id: memberRole._id }).exec();
-    const Count = await Auction.countDocuments().exec(); 
+    const memberCount = await User.countDocuments({
+      role_id: memberRole._id,
+    }).exec();
+    const Count = await Auction.countDocuments().exec();
 
     res.json({ memberCount });
   } catch (error) {
@@ -464,7 +466,7 @@ exports.getMemberCount = async (req, res, next) => {
 exports.getHostCount = async (req, res, next) => {
   try {
     // Tìm vai trò "Member"
-    const memberRole = await Role.findOne({ title: "Host" }).exec();
+    const memberRole = await Role.findOne({ title: "HOST" }).exec();
 
     // Nếu không tìm thấy vai trò, trả về số lượng người dùng là 0
     if (!memberRole) {
@@ -473,7 +475,9 @@ exports.getHostCount = async (req, res, next) => {
     }
 
     // Đếm số lượng người dùng có role_id trùng với ObjectId của vai trò "Member"
-    const memberCount = await User.countDocuments({ role_id: memberRole._id }).exec();
+    const memberCount = await User.countDocuments({
+      role_id: memberRole._id,
+    }).exec();
 
     res.json({ memberCount });
   } catch (error) {
@@ -483,14 +487,16 @@ exports.getHostCount = async (req, res, next) => {
 };
 exports.getAgvMemberAuction = async (req, res, next) => {
   try {
-    const memberRole = await Role.findOne({ title: "Member" }).exec();
+    const memberRole = await Role.findOne({ title: "MEMBER" }).exec();
     if (!memberRole) {
       res.json({ memberCount: 0 });
       return;
     }
-    const memberCount = await User.countDocuments({ role_id: memberRole._id }).exec();
+    const memberCount = await User.countDocuments({
+      role_id: memberRole._id,
+    }).exec();
     const auctionCount = await Auction.countDocuments({}).exec();
-    const avgCount = memberCount/auctionCount;
+    const avgCount = memberCount / auctionCount;
     res.json({ avgCount });
   } catch (error) {
     console.error(error);

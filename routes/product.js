@@ -76,9 +76,15 @@ router.get("/ProductToday/:date", productController.getProductsCreatedToday);
 
 router.get("/ProductCount", productController.getProductCount);
 
-router.get("/UnAuctionedProductCount", productController.getUnAuctionedProductCount);
+router.get(
+  "/UnAuctionedProductCount",
+  productController.getUnAuctionedProductCount
+);
 
-router.get("/AuctionedProductCount", productController.getAuctionedProductCount);
+router.get(
+  "/AuctionedProductCount",
+  productController.getAuctionedProductCount
+);
 
 router.get("/:userId", authenticateJWT, productController.getProductByUserID);
 
@@ -86,9 +92,6 @@ router.get("/:userId", authenticateJWT, productController.getProductByUserID);
 router.put("/:productId", authenticateJWT, productController.putUpdateProduct);
 // method delete product
 router.delete("/:productId", authenticateJWT, productController.deleteProduct);
-
-
-
 
 // router.post("/register", userController.postAddUser);
 
