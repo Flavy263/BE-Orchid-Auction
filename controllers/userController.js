@@ -6,6 +6,7 @@ const authenticate = require("../authenticate");
 const ReportRequest = require("../models/Report_Request");
 const Role = require("../models/Role");
 const Auction = require("../models/Auction");
+const AuctionMember = require("../models/Auction_Member");
 
 exports.uploadImg = async (req, res) => {
   try {
@@ -488,7 +489,7 @@ exports.getAgvMemberAuction = async (req, res, next) => {
       res.json({ memberCount: 0 });
       return;
     }
-    const memberCount = await User.countDocuments({ role_id: memberRole._id }).exec();
+    const memberCount = await AuctionMember.countDocuments({ role_id: memberRole._id }).exec();
     const auctionCount = await Auction.countDocuments({}).exec();
     const avgCount = memberCount/auctionCount;
     res.json({ avgCount });
