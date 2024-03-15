@@ -246,7 +246,7 @@ exports.getMemberCountToday = async (req, res) => {
     );
 
     // Tìm role_id của vai trò "Member"
-    const memberRole = await Role.findOne({ title: "Member" }).exec();
+    const memberRole = await Role.findOne({ title: "MEMBER" }).exec();
 
     if (!memberRole) {
       return res.status(404).json({ error: "Role 'Member' not found" });
@@ -281,7 +281,7 @@ exports.getHostCountToday = async (req, res) => {
     );
 
     // Tìm role_id của vai trò "Member"
-    const userRole = await Role.findOne({ title: "Host" }).exec();
+    const userRole = await Role.findOne({ title: "HOST" }).exec();
 
     if (!userRole) {
       return res.status(404).json({ error: "Role 'Host' not found" });
@@ -351,7 +351,7 @@ exports.getHostCountYesterday = async (req, res) => {
     );
 
     // Tìm role_id của vai trò "Member"
-    const userRole = await Role.findOne({ title: "Host" }).exec();
+    const userRole = await Role.findOne({ title: "HOST" }).exec();
 
     if (!userRole) {
       return res.status(404).json({ error: "Role 'Host' not found" });
@@ -421,7 +421,7 @@ exports.getHostCountTwodayAgo = async (req, res) => {
     );
 
     // Tìm role_id của vai trò "Member"
-    const userRole = await Role.findOne({ title: "Host" }).exec();
+    const userRole = await Role.findOne({ title: "HOST" }).exec();
 
     if (!userRole) {
       return res.status(404).json({ error: "Role 'Host' not found" });
@@ -453,7 +453,7 @@ exports.getMemberCount = async (req, res, next) => {
 
     // Đếm số lượng người dùng có role_id trùng với ObjectId của vai trò "Member"
     const memberCount = await User.countDocuments({ role_id: memberRole._id }).exec();
-    const Count = await Auction.countDocuments().exec(); 
+    const Count = await Auction.countDocuments().exec();
 
     res.json({ memberCount });
   } catch (error) {
@@ -465,7 +465,7 @@ exports.getMemberCount = async (req, res, next) => {
 exports.getHostCount = async (req, res, next) => {
   try {
     // Tìm vai trò "Member"
-    const memberRole = await Role.findOne({ title: "Host" }).exec();
+    const memberRole = await Role.findOne({ title: "HOST" }).exec();
 
     // Nếu không tìm thấy vai trò, trả về số lượng người dùng là 0
     if (!memberRole) {
@@ -484,14 +484,23 @@ exports.getHostCount = async (req, res, next) => {
 };
 exports.getAgvMemberAuction = async (req, res, next) => {
   try {
-    const memberRole = await Role.findOne({ title: "Member" }).exec();
+    // Tìm Role có title là "MEMBER"
+    const memberRole = await Role.findOne({ title: "MEMBER" });
     if (!memberRole) {
-      res.json({ memberCount: 0 });
-      return;
+      return res.status(404).json({ error: "Role MEMBER not found" });
     }
-    const memberCount = await AuctionMember.countDocuments({ role_id: memberRole._id }).exec();
+    // Tìm tất cả User có role là "MEMBER"
+    const members = await User.find({ role_id: memberRole._id });
+    if (members.length === 0) {
+      return res.status(404).json({ error: "No users found with role MEMBER" });
+    }
+    // Đếm số lượng AuctionMember có member_id là các user thuộc role "MEMBER"
+    const memberCount = await AuctionMember.countDocuments({ member_id: { $in: members.map(member => member._id) } });
     const auctionCount = await Auction.countDocuments({}).exec();
-    const avgCount = memberCount/auctionCount;
+    if (auctionCount.length === 0||auctionCount==null) {
+      return res.status(404).json({ error: "No auction found to caculate agv member join in auction per auction" });
+    }
+    const avgCount = memberCount / auctionCount; 
     res.json({ avgCount });
   } catch (error) {
     console.error(error);
