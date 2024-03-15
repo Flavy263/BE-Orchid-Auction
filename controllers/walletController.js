@@ -587,24 +587,48 @@ exports.totalWithdrawAmountTwodayAgo = async (req, res) => {
   }
 };
 
-exports.getDepositCount = async (req, res, next) => {
+exports.getDepositAmount = async (req, res, next) => {
   try {
-    const type = "deposit";
-    const count = await WalletHistorys.countDocuments({ type:  type}).exec();
+    const totalDepositAmount = await WalletHistorys.aggregate([
+      {
+        $match: { type: "deposit" } // Lọc các giao dịch loại "deposit"
+      },
+      {
+        $group: {
+          _id: null, // Nhóm tất cả các giao dịch vào một nhóm duy nhất
+          totalAmount: { $sum: "$amount" } // Tính tổng số tiền (amount)
+        }
+      }
+    ]);
 
-    res.json({ count });
+    // Lấy tổng số tiền nạp vào từ kết quả
+    const depositAmount = totalDepositAmount.length > 0 ? totalDepositAmount[0].totalAmount : 0;
+
+    res.json({ depositAmount });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
-exports.getWithdrawCount = async (req, res, next) => {
+exports.getWithdrawAmount = async (req, res, next) => {
   try {
-    const type = "withdraw";
-    const count = await WalletHistorys.countDocuments({ type:  type}).exec();
-    console.log(count);
-    res.json({ count });
+    const totalDepositAmount = await WalletHistorys.aggregate([
+      {
+        $match: { type: "withdraw" } // Lọc các giao dịch loại "deposit"
+      },
+      {
+        $group: {
+          _id: null, // Nhóm tất cả các giao dịch vào một nhóm duy nhất
+          totalAmount: { $sum: "$amount" } // Tính tổng số tiền (amount)
+        }
+      }
+    ]);
+
+    // Lấy tổng số tiền nạp vào từ kết quả
+    const depositAmount = totalDepositAmount.length > 0 ? totalDepositAmount[0].totalAmount : 0;
+
+    res.json({ depositAmount });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
