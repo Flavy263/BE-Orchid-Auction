@@ -24,7 +24,52 @@ router.get(
   "/autioned",
   auctionController.getAuctionaAuctioned
 );
+
+router.get(
+  "/getAuctionCountToday",
+  authenticateJWT,
+  auctionController.getAuctionCountToday
+);
+
+router.get(
+  "/getAuctionCountYesterday",
+  authenticateJWT,
+  auctionController.getAuctionCountYesterday
+);
+
+router.get(
+  "/getAuctionCountTwodayAgo",
+  authenticateJWT,
+  auctionController.getAuctionCountTwodayAgo
+);
+
+router.get(
+  "/getAverageAuctionMembersToday",
+  authenticateJWT,
+  auctionController.getAverageAuctionMembersToday
+);
+
+router.get(
+  "/getAverageAuctionMembersYesterday",
+  authenticateJWT,
+  auctionController.getAverageAuctionMembersYesterday
+);
+
+router.get(
+  "/getAverageAuctionMembersTwodayAgo",
+  authenticateJWT,
+  auctionController.getAverageAuctionMembersTwodayAgo
+);
+
+
+router.get("/AuctionCount", auctionController.getAuctionCount);
+router.get("/AboutToAuctionCount", auctionController.getAboutToAuctionCount);
+router.get("/AuctioningAuctionCount", auctionController.getAuctioningAuctionCount);
+router.get("/NotYetAuctionCount", auctionController.getNotYetAuctionCount);
+router.get("/AuctionedAuctionCount", auctionController.getAuctionedAuctionCount);
+
 router.get("/:host_id", authenticateJWT, auctionController.getAuctionByUserId);
+
 router.get(
   "/not-yet/:host_id",
   authenticateJWT,
@@ -117,9 +162,20 @@ router.get(
   auctionController.getMostPriceInAuctionBid
 );
 
+router.get("/AuctionToday/:date", auctionController.getAuctionsCreatedToday);
+
+
 router.get(
   "/getAllMemberInAuctionBid/:auctionId",
   auctionController.getAllMemberInAuctionBid
 );
+
+
+// router.get(
+//   "/AuctionToday",
+//   authenticateJWT,
+//   auctionController.getMostPriceInAuctionBid
+// );
+
 
 module.exports = router;

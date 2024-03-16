@@ -7,6 +7,9 @@ const passport = require("passport");
 const authenticateJWT = passport.authenticate("jwt", { session: false });
 
 router.get("/", authenticateJWT, walletController.getWallet);
+router.get("/DepositAmount", walletController.getDepositAmount);
+router.get("/WithdrawAmount", walletController.getWithdrawAmount);
+
 router.get(
   "/walletHistory",
   authenticateJWT,
@@ -27,12 +30,25 @@ router.post(
   walletController.registerJoinInAuction
 );
 
+router.get("/totalDepositAmountToday", authenticateJWT, walletController.totalDepositAmountToday);
+router.get("/totalWithdrawAmountToday", authenticateJWT, walletController.totalWithdrawAmountToday);
+router.get("/totalDepositAmountYesterday", authenticateJWT, walletController.totalDepositAmountYesterday);
+router.get("/totalWithdrawAmountYesterday", authenticateJWT, walletController.totalWithdrawAmountYesterday);
+router.get("/totalDepositAmountTwodayAgo", authenticateJWT, walletController.totalDepositAmountTwodayAgo);
+router.get("/totalWithdrawAmountTwodayAgo", authenticateJWT, walletController.totalWithdrawAmountTwodayAgo);
+
 router.get("/:walletId", authenticateJWT, walletController.getWalletByID);
 router.put("/:walletId", authenticateJWT, walletController.updateWalletByID);
 router.get(
   "/wallet-history/:user_id",
   authenticateJWT,
   walletController.getWalletHistoryByUserID
+);
+
+router.get(
+  "/getWalletHistoryByDate/:date",
+  authenticateJWT,
+  walletController.getWalletHistoryByDate
 );
 
 module.exports = router;
