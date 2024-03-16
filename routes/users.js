@@ -41,7 +41,9 @@ router.get(
   userController.getAgvMemberAuction
 );
 
-router.get("/fetchMe", verifyToken, userController.fetchMe);
+router.post("/login", userController.postLoginUser);
+
+router.get("/sendMail", userController.sendMailOTP);
 
 router.post("/register", upload.single("image"), userController.postAddUser);
 

@@ -34,11 +34,13 @@ const io = require("socket.io")(server, {
 });
 // const url = "mongodb+srv://nguyenhoangphat852:TX0TzRNCxPcAuB8n@cluster0.k6s0uzi.mongodb.net/?retryWrites=true&w=majority";
 const url = "mongodb://127.0.0.1:27017/MutantOrchidAuction";
+// const url = "mongodb+srv://nguyenhoangphat852:TX0TzRNCxPcAuB8n@cluster0.k6s0uzi.mongodb.net/?retryWrites=true&w=majority";
+const url = "mongodb://127.0.0.1:27017/MutantOrchidAuction";
 const connect = mongoose.connect(url);
 app.set("socketio", io);
 io.on("connection", (socket) => {
   console.log("A client connected");
-  socket.on('auctionEnded', async (data) => {
+  socket.on("auctionEnded", async (data) => {
     try {
       // Tạo order dựa trên thông tin nhận được từ client
       const order = await Orders.create({
@@ -47,10 +49,10 @@ io.on("connection", (socket) => {
         winner_id: data.winner_id,
         auction_id: data.auction_id,
         host_id: data.host_id,
-        price: data.price
+        price: data.price,
         // Thêm các trường khác tùy theo yêu cầu của ứng dụng
       });
-      await Auction.findByIdAndUpdate(data.auction_id, { status: 'auctioned' });
+      await Auction.findByIdAndUpdate(data.auction_id, { status: "auctioned" });
       console.log("Order Created ", order);
       // Gửi thông báo về client rằng order đã được tạo thành công
       // Bạn có thể gửi thông báo này thông qua Socket.IO hoặc các phương thức khác
