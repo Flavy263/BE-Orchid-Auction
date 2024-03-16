@@ -145,7 +145,7 @@ app.use(
     // store: new FileStore()
   })
 );
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT1 || 3001;
 server.listen(PORT, () => {
   console.log(`Socket.IO server is running on port ${PORT}`);
 });
