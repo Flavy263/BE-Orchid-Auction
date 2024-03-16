@@ -142,6 +142,61 @@ exports.putUpdateProduct = (req, res, next) => {
     .catch((err) => next(err));
 };
 
+
+// const cloudinary = require('cloudinary').v2; // Import cloudinary module
+
+// Function to update product
+exports.putUpdateProductLol = async (req, res, next) => {
+  try {
+    const productId = req.params.productId;
+    console.log("###############");
+    console.log("****************** ",productId);
+    // Find the product by ID
+    const product = await Product.findById(productId);
+
+    // If product not found, return error
+    if (!product) {
+      return res.status(404).json({ error: "Product not found." });
+    }
+    // Kiểm tra xem có file ảnh và video được tải lên hay không
+    if (!req.files || !req.files["image"] || !req.files["video"]) {
+      return res.status(400).json({ error: "No image or video uploaded." });
+    }
+    // Sử dụng thông tin từ đối tượng result trực tiếp
+    const imageUrls = req.files["image"].map((image) => image.path);
+    const videoUrls = req.files["video"].map((video) => video.path);
+    // Update product with new image and video URLs
+    product.image = imageUrls;
+    product.video = videoUrls;
+
+    // Update product information if provided in request body
+    if (req.body.name) {
+      product.name = req.body.name;
+    }
+    if (req.body.description) {
+      product.description = req.body.description;
+    }
+    if (req.body.host_id) {
+      product.host_id = req.body.host_id;
+    }
+
+    // Save updated product to the database
+    const updatedProduct = await product.save();
+
+    // Send response
+    res.status(200).json({
+      success: true,
+      status: "Update Successful!",
+      product: updatedProduct,
+    });
+  } catch (error) {
+    // Handle errors
+    console.error("Error updating product:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+
 exports.deleteProduct = (req, res, next) => {
   const productId = req.params.productId;
   Product.findByIdAndUpdate(
