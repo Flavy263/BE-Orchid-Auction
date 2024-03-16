@@ -1059,7 +1059,9 @@ exports.updateAuction = async (req, res, next) => {
     // Tìm và cập nhật trạng thái sản phẩm
     const updatedProduct = await Auctions.findOneAndUpdate(
       { _id: auctionId },
-      { $set: { status: true } },
+      {
+        $set: req.body,
+      },
       { new: true }
     );
 

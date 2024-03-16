@@ -149,8 +149,6 @@ exports.putUpdateProduct = (req, res, next) => {
 exports.putUpdateProductLol = async (req, res, next) => {
   try {
     const productId = req.params.productId;
-    console.log("###############");
-    console.log("****************** ",productId);
     // Find the product by ID
     const product = await Product.findById(productId);
 

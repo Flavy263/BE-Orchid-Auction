@@ -32,6 +32,11 @@ const upload = multer({ storage: storage });
 router.post("/upload", upload.single("image"), userController.uploadImg);
 
 router.get("/", authenticateJWT, userController.getAllUser);
+router.post("/SendMailOTP", userController.sendMailOTP);
+router.post("/AddOTP", userController.postAddOTP);
+router.get("/", authenticateJWT, userController.getAllUser);
+router.get("/GetAllOTP", userController.getAllOTP);
+router.post("/CheckOTP", userController.checkOTP);
 
 router.get("/MemberCount", authenticateJWT, userController.getMemberCount);
 router.get("/HostCount", authenticateJWT, userController.getHostCount);
@@ -42,8 +47,6 @@ router.get(
 );
 
 router.post("/login", userController.postLoginUser);
-
-router.get("/sendMail", userController.sendMailOTP);
 
 router.post("/register", upload.single("image"), userController.postAddUser);
 
