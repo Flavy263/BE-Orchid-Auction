@@ -590,7 +590,7 @@ exports.sendMailOTP = async (req, res, next) => {
     // Lưu thông tin người dùng và mã xác thực vào cơ sở dữ liệu OTP
     await userOTP.save();
     const subject = 'Verification Code for Registration';
-    const text = 'Your verification code is: ${verificationCode}';
+    const text = `Your verification code is: ${verificationCode}`;
     // Gửi email xác thực
     await sendVerificationEmail(email, subject, text);
 
