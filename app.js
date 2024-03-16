@@ -32,8 +32,7 @@ const io = require("socket.io")(server, {
     credentials: true,
   },
 });
-// const url = "mongodb+srv://nguyenhoangphat852:TX0TzRNCxPcAuB8n@cluster0.k6s0uzi.mongodb.net/?retryWrites=true&w=majority";
-const url = "mongodb://127.0.0.1:27017/MutantOrchidAuction";
+
 // const url = "mongodb+srv://nguyenhoangphat852:TX0TzRNCxPcAuB8n@cluster0.k6s0uzi.mongodb.net/?retryWrites=true&w=majority";
 const url = "mongodb://127.0.0.1:27017/MutantOrchidAuction";
 const connect = mongoose.connect(url);
