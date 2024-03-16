@@ -8,7 +8,7 @@ const authenticateJWT = passport.authenticate("jwt", { session: false });
 
 router.get("/", auctionController.getAllAuction);
 router.post("/", authenticateJWT, auctionController.createAuction);
-router.put("/", authenticateJWT, auctionController.createAuction);
+router.put("/:auctionId", authenticateJWT, auctionController.updateAuction);
 router.get("/not", authenticateJWT, auctionController.getAuctionNotAuctioned);
 router.get("/not-yet", auctionController.getAuctionNotYetAuctioned);
 router.get("/about-to", auctionController.getAuctionAboutToAuction);
