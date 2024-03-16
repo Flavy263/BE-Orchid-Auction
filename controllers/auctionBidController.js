@@ -52,7 +52,7 @@ exports.handleNewBid = async (req, res) => {
 
     // const maxPrice = maxBid ? maxBid.price : 0;
     // console.log("maxPid", maxBid);
-    if (price < maxBid.price) {
+    if (price <= maxBid.price) {
       throw new Error(`Không dc nhập số tiền nhỏ hơn hoặc bằng ${maxBid.price}`);
 
     }
@@ -114,7 +114,7 @@ exports.getAuctionBidSortDes = async (req, res) => {
     const auctionBids = await AuctionBid.find({ auction_id: auctionId })
       .sort({ price: -1 }) // Sắp xếp theo giảm dần của giá
       .exec();
-
+    console.log("le",auctionBids.length);
     if (auctionBids.length > 1) {
       auctionBids.pop(); // Loại bỏ bản ghi cuối cùng, có giá nhỏ nhất
     }

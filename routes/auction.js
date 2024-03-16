@@ -10,26 +10,10 @@ router.get("/", auctionController.getAllAuction);
 router.post("/", authenticateJWT, auctionController.createAuction);
 router.put("/", authenticateJWT, auctionController.createAuction);
 router.get("/not", authenticateJWT, auctionController.getAuctionNotAuctioned);
-router.get(
-  "/not-yet",
-  authenticateJWT,
-  auctionController.getAuctionNotYetAuctioned
-);
-router.get(
-  "/about-to",
-  authenticateJWT,
-  auctionController.getAuctionAboutToAuction
-);
-router.get(
-  "/auctioning",
-  authenticateJWT,
-  auctionController.getAuctionAuctioning
-);
-router.get(
-  "/autioned",
-  authenticateJWT,
-  auctionController.getAuctionaAuctioned
-);
+router.get("/not-yet", auctionController.getAuctionNotYetAuctioned);
+router.get("/about-to", auctionController.getAuctionAboutToAuction);
+router.get("/auctioning", auctionController.getAuctionAuctioning);
+router.get("/autioned", auctionController.getAuctionaAuctioned);
 
 router.get(
   "/getAuctionCountToday",
@@ -176,11 +160,15 @@ router.get(
 
 router.get(
   "/getMostPriceInAuctionBid/:auctionId",
-  authenticateJWT,
   auctionController.getMostPriceInAuctionBid
 );
 
 router.get("/AuctionToday/:date", auctionController.getAuctionsCreatedToday);
+
+router.get(
+  "/getAllMemberInAuctionBid/:auctionId",
+  auctionController.getAllMemberInAuctionBid
+);
 
 // router.get(
 //   "/AuctionToday",
