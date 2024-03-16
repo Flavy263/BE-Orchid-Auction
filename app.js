@@ -145,10 +145,9 @@ app.use(
     // store: new FileStore()
   })
 );
-const PORT = 3001;
-const HOSTNAME = '0.0.0.0';
-server.listen(PORT, HOSTNAME, () => {
-  console.log(`Socket.IO server is running at http://${HOSTNAME}:${PORT}`);
+const PORT = process.env.PORT || 3001;
+server.listen(PORT, () => {
+  console.log(`Socket.IO server is running on port ${PORT}`);
 });
 app.use(passport.session());
 app.use(passport.initialize());
