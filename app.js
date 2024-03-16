@@ -145,9 +145,8 @@ app.use(
     // store: new FileStore()
   })
 );
-const PORT = process.env.PORT1 || 3001;
-server.listen(PORT, () => {
-  console.log(`Socket.IO server is running on port ${PORT}`);
+server.listen(3001, () => {
+  console.log("Socket.IO server is running on port 3001");
 });
 app.use(passport.session());
 app.use(passport.initialize());
