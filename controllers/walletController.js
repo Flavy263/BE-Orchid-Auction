@@ -22,8 +22,13 @@ exports.getWallet = (req, res, next) => {
 
 exports.getAllWalletHistory = (req, res, next) => {
   WalletHistorys.find({})
-    .populate("wallet_id")
-    .populate("wallet_id.user_id")
+    .populate({
+      path: "wallet_id",
+      populate: {
+        path: "user_id",
+        model: "User",
+      },
+    })
     .then(
       (wallet) => {
         res.statusCode = 200;

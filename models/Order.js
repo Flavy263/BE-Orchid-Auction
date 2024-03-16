@@ -21,16 +21,16 @@ const orderSchema = new Schema(
     },
     status: {
       type: Boolean,
-      required: true,
+      default: false,
     },
     price: {
-      type: mongoose.Types.Currency,
+      type: Number,
       required: true,
     },
     date: {
       type: Date,
       default: Date.now(),
-      required: true,
+      required: false,
     },
   },
   {
