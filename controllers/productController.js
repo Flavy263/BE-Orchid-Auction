@@ -38,16 +38,23 @@ exports.getAllProduct = (req, res, next) => {
     .catch((err) => next(err));
 };
 
-
 exports.getProductsCreatedToday = async (req, res) => {
   try {
     const requestedDate = new Date(req.params.date);
-    const startOfDay = new Date(requestedDate.getFullYear(), requestedDate.getMonth(), requestedDate.getDate());
-    const endOfDay = new Date(requestedDate.getFullYear(), requestedDate.getMonth(), requestedDate.getDate() + 1);
+    const startOfDay = new Date(
+      requestedDate.getFullYear(),
+      requestedDate.getMonth(),
+      requestedDate.getDate()
+    );
+    const endOfDay = new Date(
+      requestedDate.getFullYear(),
+      requestedDate.getMonth(),
+      requestedDate.getDate() + 1
+    );
 
     // Sử dụng Mongoose để đếm số lượng sản phẩm được tạo trong ngày cụ thể
     const productCount = await Product.countDocuments({
-      timestamp: { $gte: startOfDay, $lt: endOfDay }
+      timestamp: { $gte: startOfDay, $lt: endOfDay },
     }).exec();
 
     res.json({ productCount });
@@ -56,9 +63,6 @@ exports.getProductsCreatedToday = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
-
-
 
 exports.getProductByUserID = (req, res, next) => {
   const userId = req.params.userId;
@@ -85,7 +89,7 @@ exports.postAddProduct = async (req, res) => {
     if (!req.files || !req.files["image"] || !req.files["video"]) {
       return res.status(400).json({ error: "No image or video uploaded." });
     }
-    
+
     // Sử dụng thông tin từ đối tượng result trực tiếp
     const imageUrls = req.files["image"].map((image) => image.path);
     const videoUrls = req.files["video"].map((video) => video.path);
@@ -124,6 +128,7 @@ exports.putUpdateProduct = (req, res, next) => {
   )
     .then(
       (product) => {
+        console.log(product);
         res.statusCode = 200;
         res.setHeader("Content-Type", "application/json");
         res.json({
@@ -233,7 +238,7 @@ exports.getProductCountTwodayAgo = async (req, res) => {
 
     // Sử dụng Mongoose để đếm số lượng sản phẩm được tạo trước đó 2 ngày
     const productCountTwodayAgo = await Product.countDocuments({
-      timestamp: { $gte: startOfDay, $lt: endOfDay  },
+      timestamp: { $gte: startOfDay, $lt: endOfDay },
     }).exec();
 
     res.json({ productCountTwodayAgo });
@@ -243,9 +248,9 @@ exports.getProductCountTwodayAgo = async (req, res) => {
   }
 };
 
-exports.getProductCount  = async (req, res, next) =>{
+exports.getProductCount = async (req, res, next) => {
   try {
-    const productCount = await Product.countDocuments().exec(); 
+    const productCount = await Product.countDocuments().exec();
     res.json({ productCount });
   } catch (error) {
     console.error(error);
@@ -253,7 +258,7 @@ exports.getProductCount  = async (req, res, next) =>{
   }
 };
 
-exports.getUnAuctionedProductCount = async (req, res, next) =>{
+exports.getUnAuctionedProductCount = async (req, res, next) => {
   try {
     const Count = await Product.countDocuments({ status: false }).exec(); // Đếm số lượng sản phẩm có trạng thái là false
     res.json({ Count });
@@ -263,7 +268,7 @@ exports.getUnAuctionedProductCount = async (req, res, next) =>{
   }
 };
 
-exports.getAuctionedProductCount = async (req, res, next) =>{
+exports.getAuctionedProductCount = async (req, res, next) => {
   try {
     const Count = await Product.countDocuments({ status: true }).exec(); // Đếm số lượng sản phẩm có trạng thái là false
     res.json({ Count });
