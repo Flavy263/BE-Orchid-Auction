@@ -33,8 +33,10 @@ router.post("/upload", upload.single("image"), userController.uploadImg);
 
 router.get("/", authenticateJWT, userController.getAllUser);
 router.post("/SendMailOTP", userController.sendMailOTP);
+router.post("/AddOTP", userController.postAddOTP);
 router.get("/", authenticateJWT, userController.getAllUser);
-router.post("/GetAllOTP", userController.getAllOTP);
+router.get("/GetAllOTP", userController.getAllOTP);
+router.post("/CheckOTP", userController.checkOTP);
 
 router.get("/MemberCount", authenticateJWT, userController.getMemberCount);
 router.get("/HostCount", authenticateJWT, userController.getHostCount);

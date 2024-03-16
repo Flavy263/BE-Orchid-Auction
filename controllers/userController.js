@@ -554,14 +554,23 @@ exports.sendMailOTP = async (req, res, next) => {
   try {
     // Tạo mã xác thực ngẫu nhiên 6 so
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-    const userEmail = req.body.UserMail;
-    // Kiểm tra xem email đã tồn tại trong cơ sở dữ liệu OTP chưa
-    let userOTP = await OTP.findOne({ user_mail: userEmail});
+    const email = req.body.UserMail;
 
+    const user = await User.findOne({ email });
+    if (user != null) {
+      return res
+        .status(400)
+        .json({
+          error:
+            "This email is used!",
+        });
+    }
+    // Kiểm tra xem email đã tồn tại trong cơ sở dữ liệu OTP chưa
+    let userOTP = await OTP.findOne({ user_mail: email });
     if (!userOTP) {
       // Nếu email chưa tồn tại, tạo mới một bản ghi OTP
       userOTP = new OTP({
-        user_mail: userEmail,
+        user_mail: email,
         otp_code: verificationCode
       });
     } else {
@@ -574,7 +583,7 @@ exports.sendMailOTP = async (req, res, next) => {
     const subject = 'Verification Code for Registration';
     const text = 'Your verification code is: ${verificationCode}';
     // Gửi email xác thực
-    await sendVerificationEmail(userEmail, subject, text);
+    await sendVerificationEmail(email, subject, text);
 
     res.status(200).json({ message: 'Verification email sent successfully.' });
   } catch (error) {
@@ -590,7 +599,7 @@ exports.checkOTP = async (req, res, next) => {
     // Kiểm tra xem mã xác thực có khớp với mã trong cơ sở dữ liệu hay không
     const OTPObject = await OTP.findOne({ user_mail: user_mail, otp_code: otp_code });
     if (!OTPObject) {
-      return res.status(400).json({ error: 'Invalid verification code.' });
+      return res.status(400).json({ message: 'Invalid verification code.' });
     }
 
     res.status(200).json({ message: 'Email verified successfully.' });
@@ -599,6 +608,7 @@ exports.checkOTP = async (req, res, next) => {
     res.status(500).json({ error: 'Internal server error.' });
   }
 };
+
 exports.getAllOTP = (req, res, next) => {
   OTP.find({})
     .then(
@@ -610,4 +620,21 @@ exports.getAllOTP = (req, res, next) => {
       (err) => next(err)
     )
     .catch((err) => next(err));
+};
+
+
+exports.postAddOTP = async (req, res, next) => {
+  try {
+
+    const user = await OTP.create({
+      user_mail: req.body.UserMail,
+      otp_code: req.body.OTPCode
+    });
+
+    // Return success response
+    res.status(200).json({ success: true, status: "Registration Successful!" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
 };
