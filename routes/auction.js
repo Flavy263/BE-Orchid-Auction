@@ -92,7 +92,7 @@ router.get(
   auctionController.getAuctionaAuctionedByUser
 );
 router.get("/:auctionId", authenticateJWT, auctionController.getAuctionByID);
-router.put("/:auctionId", authenticateJWT, auctionController.updateAuctionByID);
+// router.put("/:auctionId", authenticateJWT, auctionController.updateAuctionByID);
 router.delete(
   "/:auctionId",
   authenticateJWT,
