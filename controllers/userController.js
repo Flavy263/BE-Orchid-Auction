@@ -7,6 +7,9 @@ const ReportRequest = require("../models/Report_Request");
 const Role = require("../models/Role");
 const Auction = require("../models/Auction");
 const AuctionMember = require("../models/Auction_Member");
+const Config = require("../config");
+const OTP = require("../models/OTP");
+
 
 exports.uploadImg = async (req, res) => {
   try {
@@ -521,47 +524,90 @@ exports.getAgvMemberAuction = async (req, res, next) => {
 
 const nodemailer = require('nodemailer');
 
-exports.sendMailOTP = async (req, res) => {
+
+// Send mail function
+async function sendVerificationEmail(userEmail, subject, text) {
   try {
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        user: 'flamingotran1532002@gmail.com',
-        pass: 'bnil kdbm apsy tgkn'
+        user: Config.ADMIN_EMAIL,
+        pass: Config.ADMIN_PASS_EMAIL
       }
     });
-
-    const twoDayAgo = new Date();
-    twoDayAgo.setDate(twoDayAgo.getDate() - 2);
-    const startOfTwoDayAgo = new Date(
-      twoDayAgo.getFullYear(),
-      twoDayAgo.getMonth(),
-      twoDayAgo.getDate()
-    );
-    const endOfTwoDayAgo = new Date(
-      twoDayAgo.getFullYear(),
-      twoDayAgo.getMonth(),
-      twoDayAgo.getDate() + 1
-    );
-
     const mailOptions = {
-      from: 'flamingotran1532002@gmail.com',
-      to: 'nguyenbanhatlinh666@gmail.com',
-      subject: 'Sending Email using Node.js',
-      text: 'That was easy!'
+      from: Config.ADMIN_EMAIL,
+      to: userEmail,
+      subject: subject,
+      text: text
     };
 
-    transporter.sendMail(mailOptions, function(error, info){
-      if (error) {
-        console.log(error);
-        res.status(500).json({ success: false, message: 'Email sending failed.' });
-      } else {
-        console.log('Email sent: ' + info.response);
-        res.status(200).json({ success: true, message: 'Email sent successfully.' });
-      }
-    });
+    await transporter.sendMail(mailOptions);
+    // console.log('Verification email sent successfully.');
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: 'Internal server error.' });
+    // console.error('Error sending verification email:', error);
+    throw error;
   }
+}
+
+exports.sendMailOTP = async (req, res, next) => {
+  try {
+    // Tạo mã xác thực ngẫu nhiên 6 so
+    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const userEmail = req.body.UserMail;
+    // Kiểm tra xem email đã tồn tại trong cơ sở dữ liệu OTP chưa
+    let userOTP = await OTP.findOne({ user_mail: userEmail});
+
+    if (!userOTP) {
+      // Nếu email chưa tồn tại, tạo mới một bản ghi OTP
+      userOTP = new OTP({
+        user_mail: userEmail,
+        otp_code: verificationCode
+      });
+    } else {
+      // Nếu email đã tồn tại, cập nhật mã xác thực của bản ghi OTP
+      userOTP.otp_code = verificationCode;
+    }
+
+    // Lưu thông tin người dùng và mã xác thực vào cơ sở dữ liệu OTP
+    await userOTP.save();
+    const subject = 'Verification Code for Registration';
+    const text = 'Your verification code is: ${verificationCode}';
+    // Gửi email xác thực
+    await sendVerificationEmail(userEmail, subject, text);
+
+    res.status(200).json({ message: 'Verification email sent successfully.' });
+  } catch (error) {
+    console.error('Error registering user:', error);
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+};
+
+exports.checkOTP = async (req, res, next) => {
+  try {
+    const { user_mail, otp_code } = req.body;
+
+    // Kiểm tra xem mã xác thực có khớp với mã trong cơ sở dữ liệu hay không
+    const OTPObject = await OTP.findOne({ user_mail: user_mail, otp_code: otp_code });
+    if (!OTPObject) {
+      return res.status(400).json({ error: 'Invalid verification code.' });
+    }
+
+    res.status(200).json({ message: 'Email verified successfully.' });
+  } catch (error) {
+    console.error('Error verifying email:', error);
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+};
+exports.getAllOTP = (req, res, next) => {
+  OTP.find({})
+    .then(
+      (course) => {
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "application/json");
+        res.json(course);
+      },
+      (err) => next(err)
+    )
+    .catch((err) => next(err));
 };
