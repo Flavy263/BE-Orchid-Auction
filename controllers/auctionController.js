@@ -250,6 +250,21 @@ exports.getAuctionByID = (req, res, next) => {
     .catch((err) => next(err));
 };
 
+exports.getAuctionNotAuctionedByUser = (req, res, next) => {
+  Auctions.find({ host_id: req.params.host_id, status: "not" })
+    .populate("host_id", "fullName")
+    .populate("product_id", "name")
+    .then(
+      (auction) => {
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "application/json");
+        res.json(auction);
+      },
+      (err) => next(err)
+    )
+    .catch((err) => next(err));
+};
+
 exports.getAuctionNotYetAuctionedByUser = (req, res, next) => {
   Auctions.find({ host_id: req.params.host_id, status: "not yet auctioned" })
     .populate("host_id", "fullName")
@@ -341,6 +356,21 @@ exports.deleteAuctionByID = (req, res, next) => {
     )
     .catch((err) => next(err));
 };
+exports.getAuctionNotAuctioned = (req, res, next) => {
+  Auctions.find({ status: "not" })
+    .populate("host_id", "fullName")
+    .populate("product_id", "name")
+    .then(
+      (auction) => {
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "application/json");
+        res.json(auction);
+      },
+      (err) => next(err)
+    )
+    .catch((err) => next(err));
+};
+
 exports.getAuctionNotYetAuctioned = (req, res, next) => {
   Auctions.find({ status: "not yet auctioned" })
     .populate("host_id", "fullName")

@@ -7,6 +7,13 @@ const passport = require("passport");
 const authenticateJWT = passport.authenticate("jwt", { session: false });
 
 router.get("/", reportRequestController.getAllReportRequest);
+
+router.get(
+  "/getRequest/:userId",
+  authenticateJWT,
+  reportRequestController.getAllReportRequestByUserId
+);
+
 router.get(
   "/getByRequestMoney",
   authenticateJWT,

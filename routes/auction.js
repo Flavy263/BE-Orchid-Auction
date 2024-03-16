@@ -6,8 +6,10 @@ const auctionMemberController = require("../controllers/auctionMemberController"
 const router = express.Router();
 const authenticateJWT = passport.authenticate("jwt", { session: false });
 
-router.get("/", authenticateJWT, auctionController.getAllAuction);
+router.get("/", auctionController.getAllAuction);
 router.post("/", authenticateJWT, auctionController.createAuction);
+router.put("/", authenticateJWT, auctionController.createAuction);
+router.get("/not", authenticateJWT, auctionController.getAuctionNotAuctioned);
 router.get(
   "/not-yet",
   authenticateJWT,
@@ -78,6 +80,12 @@ router.get(
 );
 
 router.get("/:host_id", authenticateJWT, auctionController.getAuctionByUserId);
+
+router.get(
+  "/not/:host_id",
+  authenticateJWT,
+  auctionController.getAuctionNotAuctionedByUser
+);
 
 router.get(
   "/not-yet/:host_id",
