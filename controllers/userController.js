@@ -507,3 +507,50 @@ exports.getAgvMemberAuction = async (req, res, next) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+const nodemailer = require('nodemailer');
+
+exports.sendMailOTP = async (req, res) => {
+  try {
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: 'flamingotran1532002@gmail.com',
+        pass: 'bnil kdbm apsy tgkn'
+      }
+    });
+
+    const twoDayAgo = new Date();
+    twoDayAgo.setDate(twoDayAgo.getDate() - 2);
+    const startOfTwoDayAgo = new Date(
+      twoDayAgo.getFullYear(),
+      twoDayAgo.getMonth(),
+      twoDayAgo.getDate()
+    );
+    const endOfTwoDayAgo = new Date(
+      twoDayAgo.getFullYear(),
+      twoDayAgo.getMonth(),
+      twoDayAgo.getDate() + 1
+    );
+
+    const mailOptions = {
+      from: 'flamingotran1532002@gmail.com',
+      to: 'nguyenbanhatlinh666@gmail.com',
+      subject: 'Sending Email using Node.js',
+      text: 'That was easy!'
+    };
+
+    transporter.sendMail(mailOptions, function(error, info){
+      if (error) {
+        console.log(error);
+        res.status(500).json({ success: false, message: 'Email sending failed.' });
+      } else {
+        console.log('Email sent: ' + info.response);
+        res.status(200).json({ success: true, message: 'Email sent successfully.' });
+      }
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Internal server error.' });
+  }
+};

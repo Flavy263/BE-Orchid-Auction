@@ -37,7 +37,9 @@ router.get("/MemberCount", userController.getMemberCount);
 router.get("/HostCount", userController.getMemberCount);
 router.get("/AgvMemberAuction", userController.getAgvMemberAuction);
 
-router.get("/fetchMe", verifyToken, userController.fetchMe);
+router.post("/login", userController.postLoginUser);
+
+router.get("/sendMail", userController.sendMailOTP);
 
 router.post("/register", upload.single("image"), userController.postAddUser);
 

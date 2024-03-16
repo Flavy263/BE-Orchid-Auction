@@ -83,7 +83,16 @@ router.get("/AuctionedProductCount", productController.getAuctionedProductCount)
 router.get("/:userId", authenticateJWT, productController.getProductByUserID);
 
 // method put update product
-router.put("/:productId", authenticateJWT, productController.putUpdateProduct);
+router.put(
+  "/:productId",
+  authenticateJWT,
+  uploadImgAndVideo.fields([
+    { name: "image", maxCount: 5 },
+    { name: "video", maxCount: 5 },
+  ]),
+  productController.putUpdateProductLol
+);
+// router.put("/:productId", authenticateJWT, productController.putUpdateProduct);
 // method delete product
 router.delete("/:productId", authenticateJWT, productController.deleteProduct);
 
