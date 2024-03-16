@@ -145,7 +145,7 @@ app.use(
     // store: new FileStore()
   })
 );
-server.listen(3001, () => {
+server.listen("https://be-orchid-auction.onrender.com", () => {
   console.log("Socket.IO server is running on port 3001");
 });
 app.use(passport.session());
