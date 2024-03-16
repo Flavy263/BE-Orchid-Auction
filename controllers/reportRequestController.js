@@ -17,6 +17,24 @@ exports.getAllReportRequest = (req, res, next) => {
     .catch((err) => next(err));
 };
 
+exports.getAllReportRequestByUserId = (req, res, next) => {
+  const userRequestId = req.params.userId;
+  Report_Request.find({ user_id: userRequestId })
+    .populate("user_id")
+    .then((reportRequests) => {
+      // if (!reportRequests || reportRequests.length === 0) {
+      //   res.status(404).json({
+      //     message: `No active report requests found for user: ${userRequestId}`,
+      //   });
+      // } else {
+      res.statusCode = 200;
+      res.setHeader("Content-Type", "application/json");
+      res.json(reportRequests);
+      // }
+    })
+    .catch((err) => next(err));
+};
+
 exports.getReportRequestMoney = (req, res, next) => {
   Report_Request.find({ type_report: "money", status: true })
     .populate("user_id")

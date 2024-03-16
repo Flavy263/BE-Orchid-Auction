@@ -102,13 +102,10 @@ exports.getAllAuction = (req, res, next) => {
 
 exports.createAuction = async (req, res, next) => {
   try {
-
     const product_id = req.body.product_id;
 
     const wallet = await Wallets.findOne({ user_id: req.body.host_id });
     console.log(wallet);
-
-
 
     if (!wallet) {
       return res.status(400).json({ error: "User has no wallet!" });
@@ -144,8 +141,8 @@ exports.createAuction = async (req, res, next) => {
     await auctionBid.save();
     const auctionMemberForHost = await AuctionMembers.create({
       auction_id: auction._id,
-      member_id: req.body.host_id
-    })
+      member_id: req.body.host_id,
+    });
     // Tìm và cập nhật trạng thái sản phẩm
     const updatedProduct = await Product.findOneAndUpdate(
       { _id: product_id },
@@ -167,8 +164,6 @@ exports.createAuction = async (req, res, next) => {
     //   console.error("Error occurred while creating AuctionBid:", auctionBidError);
     //   // You can choose to send an appropriate response here
     // }
-
-
 
     // Kiểm tra xem sản phẩm có tồn tại và được cập nhật không
     if (updatedProduct) {
@@ -213,6 +208,21 @@ exports.getAuctionByUserId = (req, res, next) => {
 exports.getAuctionByID = (req, res, next) => {
   Auctions.findById(req.params.auctionId)
     .populate("product_id")
+    .then(
+      (auction) => {
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "application/json");
+        res.json(auction);
+      },
+      (err) => next(err)
+    )
+    .catch((err) => next(err));
+};
+
+exports.getAuctionNotAuctionedByUser = (req, res, next) => {
+  Auctions.find({ host_id: req.params.host_id, status: "not" })
+    .populate("host_id", "fullName")
+    .populate("product_id", "name")
     .then(
       (auction) => {
         res.statusCode = 200;
@@ -315,6 +325,21 @@ exports.deleteAuctionByID = (req, res, next) => {
     )
     .catch((err) => next(err));
 };
+exports.getAuctionNotAuctioned = (req, res, next) => {
+  Auctions.find({ status: "not" })
+    .populate("host_id", "fullName")
+    .populate("product_id", "name")
+    .then(
+      (auction) => {
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "application/json");
+        res.json(auction);
+      },
+      (err) => next(err)
+    )
+    .catch((err) => next(err));
+};
+
 exports.getAuctionNotYetAuctioned = (req, res, next) => {
   Auctions.find({ status: "not yet auctioned" })
     .populate("host_id", "fullName")
@@ -730,32 +755,28 @@ exports.getMostPriceInAuctionBid = async (req, res, next) => {
   }
 };
 
-
 exports.getAllMemberInAuctionBid = async (req, res, next) => {
   try {
     const auctionId = req.params.auctionId;
 
     // Kiểm tra xem auctionId đã được cung cấp hay chưa
     if (!auctionId) {
-      return res.status(400).json({ error: 'Auction ID is required.' });
+      return res.status(400).json({ error: "Auction ID is required." });
     }
 
     // Truy vấn cơ sở dữ liệu để tìm tất cả các thông tin từ cả hai bảng AuctionMembers và User
     const auctionMembers = await AuctionMembers.find({ auction_id: auctionId })
       .populate({
-        path: 'member_id',
-        populate: { path: 'role_id' } // Populate role_id trong bảng User
+        path: "member_id",
+        populate: { path: "role_id" }, // Populate role_id trong bảng User
       })
-      .populate('auction_id'); // Populate thông tin về phiên đấu giá từ bảng Auction
+      .populate("auction_id"); // Populate thông tin về phiên đấu giá từ bảng Auction
 
     res.json(auctionMembers); // Trả về danh sách các thành viên trong phiên đấu giá với thông tin đầy đủ
   } catch (err) {
     next(err);
   }
 };
-
-
-
 
 exports.getAuctionsCreatedToday = async (req, res) => {
   try {
@@ -774,7 +795,7 @@ exports.getAuctionsCreatedToday = async (req, res) => {
     // Sử dụng Mongoose để đếm số lượng sản phẩm được tạo trong ngày cụ thể
 
     const Count = await Auctions.countDocuments({
-      timestamp: { $gte: startOfDay, $lt: endOfDay }
+      timestamp: { $gte: startOfDay, $lt: endOfDay },
     }).exec();
 
     res.json({ Count });
@@ -783,7 +804,6 @@ exports.getAuctionsCreatedToday = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
 
 exports.getAuctionCount = async (req, res) => {
   try {
@@ -795,12 +815,12 @@ exports.getAuctionCount = async (req, res) => {
   }
 };
 
-
-
 exports.getNotYetAuctionCount = async (req, res) => {
   try {
-    const statusAuction = "not yet";
-    const Count = await Auctions.countDocuments({ status: statusAuction }).exec(); // Đếm số lượng phiên đấu giá có trạng thái là status
+    const statusAuction = "not yet auctioned";
+    const Count = await Auctions.countDocuments({
+      status: statusAuction,
+    }).exec(); // Đếm số lượng phiên đấu giá có trạng thái là status
     res.json({ Count });
   } catch (error) {
     console.error(error);
@@ -810,8 +830,10 @@ exports.getNotYetAuctionCount = async (req, res) => {
 
 exports.getAboutToAuctionCount = async (req, res, next) => {
   try {
-    const statusAuction = "about to";
-    const Count = await Auctions.countDocuments({ status: statusAuction }).exec(); // Đếm số lượng phiên đấu giá có trạng thái là status
+    const statusAuction = "about to auction";
+    const Count = await Auctions.countDocuments({
+      status: statusAuction,
+    }).exec(); // Đếm số lượng phiên đấu giá có trạng thái là status
     res.json({ Count });
   } catch (error) {
     console.error(error);
@@ -821,8 +843,10 @@ exports.getAboutToAuctionCount = async (req, res, next) => {
 
 exports.getAuctioningAuctionCount = async (req, res, next) => {
   try {
-    const statusAuction = "auctining";
-    const Count = await Auctions.countDocuments({ status: statusAuction }).exec(); // Đếm số lượng phiên đấu giá có trạng thái là status
+    const statusAuction = "auctioning";
+    const Count = await Auctions.countDocuments({
+      status: statusAuction,
+    }).exec(); // Đếm số lượng phiên đấu giá có trạng thái là status
     res.json({ Count });
   } catch (error) {
     console.error(error);
@@ -994,7 +1018,6 @@ exports.getAverageAuctionMembersTwodayAgo = async (req, res) => {
       twoDayAgo.getDate() + 1
     );
 
-
     // Sử dụng Mongoose để tính số lượng thành viên tham gia vào các phiên đấu giá trong hôm nay
     const totalMembers = await AuctionMember.countDocuments({
       timestamp: { $gte: startOfTwoDayAgo, $lt: endOfTwoDayAgo },
@@ -1018,7 +1041,9 @@ exports.getAverageAuctionMembersTwodayAgo = async (req, res) => {
 exports.getAuctionedAuctionCount = async (req, res, next) => {
   try {
     const statusAuction = "auctioned";
-    const Count = await Auctions.countDocuments({ status: statusAuction }).exec(); // Đếm số lượng phiên đấu giá có trạng thái là status
+    const Count = await Auctions.countDocuments({
+      status: statusAuction,
+    }).exec(); // Đếm số lượng phiên đấu giá có trạng thái là status
     res.json({ Count });
   } catch (error) {
     console.error(error);

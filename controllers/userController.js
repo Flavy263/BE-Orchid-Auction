@@ -443,7 +443,7 @@ exports.getHostCountTwodayAgo = async (req, res) => {
 exports.getMemberCount = async (req, res, next) => {
   try {
     // Tìm vai trò "Member"
-    const memberRole = await Role.findOne({ title: "Member" }).exec();
+    const memberRole = await Role.findOne({ title: "MEMBER" }).exec();
 
     // Nếu không tìm thấy vai trò, trả về số lượng người dùng là 0
     if (!memberRole) {
@@ -452,7 +452,9 @@ exports.getMemberCount = async (req, res, next) => {
     }
 
     // Đếm số lượng người dùng có role_id trùng với ObjectId của vai trò "Member"
-    const memberCount = await User.countDocuments({ role_id: memberRole._id }).exec();
+    const memberCount = await User.countDocuments({
+      role_id: memberRole._id,
+    }).exec();
     const Count = await Auction.countDocuments().exec();
 
     res.json({ memberCount });
@@ -474,7 +476,9 @@ exports.getHostCount = async (req, res, next) => {
     }
 
     // Đếm số lượng người dùng có role_id trùng với ObjectId của vai trò "Member"
-    const memberCount = await User.countDocuments({ role_id: memberRole._id }).exec();
+    const memberCount = await User.countDocuments({
+      role_id: memberRole._id,
+    }).exec();
 
     res.json({ memberCount });
   } catch (error) {
@@ -495,12 +499,19 @@ exports.getAgvMemberAuction = async (req, res, next) => {
       return res.status(404).json({ error: "No users found with role MEMBER" });
     }
     // Đếm số lượng AuctionMember có member_id là các user thuộc role "MEMBER"
-    const memberCount = await AuctionMember.countDocuments({ member_id: { $in: members.map(member => member._id) } });
+    const memberCount = await AuctionMember.countDocuments({
+      member_id: { $in: members.map((member) => member._id) },
+    });
     const auctionCount = await Auction.countDocuments({}).exec();
-    if (auctionCount.length === 0||auctionCount==null) {
-      return res.status(404).json({ error: "No auction found to caculate agv member join in auction per auction" });
+    if (auctionCount.length === 0 || auctionCount == null) {
+      return res
+        .status(404)
+        .json({
+          error:
+            "No auction found to caculate agv member join in auction per auction",
+        });
     }
-    const avgCount = memberCount / auctionCount; 
+    const avgCount = memberCount / auctionCount;
     res.json({ avgCount });
   } catch (error) {
     console.error(error);

@@ -8,22 +8,12 @@ const authenticateJWT = passport.authenticate("jwt", { session: false });
 
 router.get("/", auctionController.getAllAuction);
 router.post("/", authenticateJWT, auctionController.createAuction);
-router.get(
-  "/not-yet",
-  auctionController.getAuctionNotYetAuctioned
-);
-router.get(
-  "/about-to",
-  auctionController.getAuctionAboutToAuction
-);
-router.get(
-  "/auctioning",
-  auctionController.getAuctionAuctioning
-);
-router.get(
-  "/autioned",
-  auctionController.getAuctionaAuctioned
-);
+router.put("/", authenticateJWT, auctionController.createAuction);
+router.get("/not", authenticateJWT, auctionController.getAuctionNotAuctioned);
+router.get("/not-yet", auctionController.getAuctionNotYetAuctioned);
+router.get("/about-to", auctionController.getAuctionAboutToAuction);
+router.get("/auctioning", auctionController.getAuctionAuctioning);
+router.get("/autioned", auctionController.getAuctionaAuctioned);
 
 router.get(
   "/getAuctionCountToday",
@@ -61,14 +51,25 @@ router.get(
   auctionController.getAverageAuctionMembersTwodayAgo
 );
 
-
 router.get("/AuctionCount", auctionController.getAuctionCount);
 router.get("/AboutToAuctionCount", auctionController.getAboutToAuctionCount);
-router.get("/AuctioningAuctionCount", auctionController.getAuctioningAuctionCount);
+router.get(
+  "/AuctioningAuctionCount",
+  auctionController.getAuctioningAuctionCount
+);
 router.get("/NotYetAuctionCount", auctionController.getNotYetAuctionCount);
-router.get("/AuctionedAuctionCount", auctionController.getAuctionedAuctionCount);
+router.get(
+  "/AuctionedAuctionCount",
+  auctionController.getAuctionedAuctionCount
+);
 
 router.get("/:host_id", authenticateJWT, auctionController.getAuctionByUserId);
+
+router.get(
+  "/not/:host_id",
+  authenticateJWT,
+  auctionController.getAuctionNotAuctionedByUser
+);
 
 router.get(
   "/not-yet/:host_id",
@@ -164,18 +165,15 @@ router.get(
 
 router.get("/AuctionToday/:date", auctionController.getAuctionsCreatedToday);
 
-
 router.get(
   "/getAllMemberInAuctionBid/:auctionId",
   auctionController.getAllMemberInAuctionBid
 );
-
 
 // router.get(
 //   "/AuctionToday",
 //   authenticateJWT,
 //   auctionController.getMostPriceInAuctionBid
 // );
-
 
 module.exports = router;
