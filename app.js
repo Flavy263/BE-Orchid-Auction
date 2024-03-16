@@ -13,6 +13,8 @@ const auctionBidRouter = require("./routes/auctionBid");
 const walletRouter = require("./routes/wallet");
 const ReportRequestRouter = require("./routes/reportRequest");
 const ConfigRouter = require("./routes/config");
+const orderRouter = require("./routes/order");
+
 const Orders = require("./models/Order")
 const Auction = require("./models/Auction")
 const cors = require("cors");
@@ -30,13 +32,14 @@ const io = require("socket.io")(server, {
     credentials: true,
   },
 });
+
 // const url = "mongodb+srv://nguyenhoangphat852:TX0TzRNCxPcAuB8n@cluster0.k6s0uzi.mongodb.net/?retryWrites=true&w=majority";
 const url = "mongodb://127.0.0.1:27017/MutantOrchidAuction";
 const connect = mongoose.connect(url);
 app.set("socketio", io);
 io.on("connection", (socket) => {
   console.log("A client connected");
-  socket.on('auctionEnded', async (data) => {
+  socket.on("auctionEnded", async (data) => {
     try {
       // Tạo order dựa trên thông tin nhận được từ client
       const order = await Orders.create({
@@ -45,10 +48,10 @@ io.on("connection", (socket) => {
         winner_id: data.winner_id,
         auction_id: data.auction_id,
         host_id: data.host_id,
-        price: data.price
+        price: data.price,
         // Thêm các trường khác tùy theo yêu cầu của ứng dụng
       });
-      await Auction.findByIdAndUpdate(data.auction_id, { status: 'auctioned' });
+      await Auction.findByIdAndUpdate(data.auction_id, { status: "auctioned" });
       console.log("Order Created ", order);
       // Gửi thông báo về client rằng order đã được tạo thành công
       // Bạn có thể gửi thông báo này thông qua Socket.IO hoặc các phương thức khác
@@ -73,24 +76,7 @@ connect.then(
     console.log(err);
   }
 );
-// const corsOptions = {
-//   origin: 'http://127.0.0.1:5173',
-//   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-//   preflightContinue: false,
-//   optionsSuccessStatus: 204,
-// };
-// const corsOptions = {
-//   origin: "http://localhost:3010",
-//   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-//   preflightContinue: false,
-//   optionsSuccessStatus: 204,
-// };
-// const corsOptions = {
-//   origin: 'http://localhost:5173',
-//   methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'], // Thêm PUT, PATCH và DELETE vào đây
-//   allowedHeaders: ['Content-Type', 'Authorization'],
-//   credentials: true,
-// };
+
 const corsOptions = {
   origin: "*", // Allow any origin
   // origin: ["http://localhost:3010", "http://127.0.0.1:5173"],
@@ -119,6 +105,7 @@ app.use("/auctionBid", auctionBidRouter);
 app.use("/wallets", walletRouter);
 app.use("/report_requests", ReportRequestRouter);
 app.use("/configs", ConfigRouter);
+app.use("/orders", orderRouter);
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
   next(createError(404));

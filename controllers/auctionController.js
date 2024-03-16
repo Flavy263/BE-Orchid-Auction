@@ -1050,3 +1050,37 @@ exports.getAuctionedAuctionCount = async (req, res, next) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+exports.updateAuction = async (req, res, next) => {
+  try {
+    const auctionId = req.params.auctionId;
+
+
+    // Tìm và cập nhật trạng thái sản phẩm
+    const updatedProduct = await Auctions.findOneAndUpdate(
+      { _id: auctionId },
+      { $set: { status: true } },
+      { new: true }
+    );
+
+
+    // Kiểm tra xem sản phẩm có tồn tại và được cập nhật không
+    if (updatedProduct) {
+      // Sau khi phiên đấu giá được tạo, gọi hàm để lên lịch cập nhật trạng thái
+      await scheduleAuctionStatusUpdates(updatedProduct, req.app.get("socketio"));
+
+      res.statusCode = 200;
+      res.setHeader("Content-Type", "application/json");
+      res.json(updatedProduct);
+    } else {
+      res.statusCode = 404;
+      res.setHeader("Content-Type", "application/json");
+      res.json({
+        success: false,
+        message: "Auction not found or not updated.",
+      });
+    }
+  } catch (err) {
+    next(err);
+  }
+};

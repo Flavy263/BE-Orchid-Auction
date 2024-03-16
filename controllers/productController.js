@@ -38,16 +38,23 @@ exports.getAllProduct = (req, res, next) => {
     .catch((err) => next(err));
 };
 
-
 exports.getProductsCreatedToday = async (req, res) => {
   try {
     const requestedDate = new Date(req.params.date);
-    const startOfDay = new Date(requestedDate.getFullYear(), requestedDate.getMonth(), requestedDate.getDate());
-    const endOfDay = new Date(requestedDate.getFullYear(), requestedDate.getMonth(), requestedDate.getDate() + 1);
+    const startOfDay = new Date(
+      requestedDate.getFullYear(),
+      requestedDate.getMonth(),
+      requestedDate.getDate()
+    );
+    const endOfDay = new Date(
+      requestedDate.getFullYear(),
+      requestedDate.getMonth(),
+      requestedDate.getDate() + 1
+    );
 
     // Sử dụng Mongoose để đếm số lượng sản phẩm được tạo trong ngày cụ thể
     const productCount = await Product.countDocuments({
-      timestamp: { $gte: startOfDay, $lt: endOfDay }
+      timestamp: { $gte: startOfDay, $lt: endOfDay },
     }).exec();
 
     res.json({ productCount });
@@ -56,9 +63,6 @@ exports.getProductsCreatedToday = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
-
-
 
 exports.getProductByUserID = (req, res, next) => {
   const userId = req.params.userId;
@@ -124,6 +128,7 @@ exports.putUpdateProduct = (req, res, next) => {
   )
     .then(
       (product) => {
+        console.log(product);
         res.statusCode = 200;
         res.setHeader("Content-Type", "application/json");
         res.json({
