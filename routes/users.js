@@ -93,7 +93,7 @@ router.get("/userid/:userid", userController.getUserById);
 router.get("/username/:userName", userController.getUserByUsername);
 
 router.get("/role/:roleId", userController.getUserByRole);
-
+router.put("/update-user/:userId", authenticateJWT, userController.updateUserByID);
 router.put("/ban-user/:userId", authenticateJWT, userController.banUserByID);
 router.get("/fetchMe", verifyToken, userController.fetchMe);
 module.exports = router;
