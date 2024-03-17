@@ -8,6 +8,7 @@ const Wallets = require("../models/Wallet");
 const WalletHistorys = require("../models/Wallet_History");
 const Config = require("../models/Config");
 const Auction_bid = require("../models/Auction_Bid");
+const AuctionMembers = require("../models/Auction_Member");
 
 // Đường dẫn đến model của phiên đấu giá
 // router.post('/newAuction', async (req, res) => {
@@ -30,6 +31,7 @@ const Auction_bid = require("../models/Auction_Bid");
 //   }
 // }
 // const io = require('../app').get('socketio');
+// crontab -e
 async function updateAuctionStatus(auctionId, newStatus, io) {
   try {
     const updatedAuction = await Auctions.findByIdAndUpdate(
@@ -48,32 +50,6 @@ async function updateAuctionStatus(auctionId, newStatus, io) {
   }
 }
 
-// Schedule để cập nhật trạng thái phiên đấu giá
-// function scheduleAuctionStatusUpdates(auction, io) {
-//   const { _id, start_time, end_time, registration_start_time, registration_end_time } = auction;
-//   const startTime = moment(start_time).format("YYYY-MM-DD HH:mm:ss");
-//   const endTime = moment(end_time).format("YYYY-MM-DD HH:mm:ss");
-//   const registrationStartTime = moment(registration_start_time).format("YYYY-MM-DD HH:mm:ss");
-//   const registrationEndTime = moment(registration_end_time).format("YYYY-MM-DD HH:mm:ss");
-//   // Kiểm tra và cập nhật trạng thái khi qua mốc thời gian
-//   schedule.scheduleJob(startTime, async () => {
-//     await updateAuctionStatus(_id, 'not yet auctioned', io);
-//   });
-
-//   schedule.scheduleJob(endTime, async () => {
-//     await updateAuctionStatus(_id, 'about to auction', io);
-//   });
-
-//   schedule.scheduleJob(registrationStartTime, async () => {
-//     await updateAuctionStatus(_id, 'auctioning', io);
-//   });
-
-//   schedule.scheduleJob(registrationEndTime, async () => {
-//     await updateAuctionStatus(_id, 'auctioned', io);
-//   });
-// }
-
-// Schedule để cập nhật trạng thái phiên đấu giá
 function scheduleAuctionStatusUpdates(auction, io) {
   const {
     _id,
@@ -82,14 +58,6 @@ function scheduleAuctionStatusUpdates(auction, io) {
     regitration_start_time,
     regitration_end_time,
   } = auction;
-  // const startTime = moment(start_time).format("YYYY-MM-DD HH:mm:ss");
-  // const endTime = moment(end_time).format("YYYY-MM-DD HH:mm:ss");
-  // const regitrationStartTime = moment(regitration_start_time).format(
-  //   "YYYY-MM-DD HH:mm:ss"
-  // );
-  // const regitrationEndTime = moment(regitration_end_time).format(
-  //   "YYYY-MM-DD HH:mm:ss"
-  // );
   const startTime = moment(start_time, "YYYY-MM-DDTHH:mm:ssZ").toDate();
   const endTime = moment(end_time, "YYYY-MM-DDTHH:mm:ssZ").toDate();
   const regitrationStartTime = moment(
@@ -134,13 +102,10 @@ exports.getAllAuction = (req, res, next) => {
 
 exports.createAuction = async (req, res, next) => {
   try {
-    console.log("req", req.body);
-    console.log("req", req.body);
     const product_id = req.body.product_id;
 
     const wallet = await Wallets.findOne({ user_id: req.body.host_id });
     console.log(wallet);
-
 
     if (!wallet) {
       return res.status(400).json({ error: "User has no wallet!" });
@@ -174,7 +139,10 @@ exports.createAuction = async (req, res, next) => {
       price: auction.starting_price,
     });
     await auctionBid.save();
-
+    const auctionMemberForHost = await AuctionMembers.create({
+      auction_id: auction._id,
+      member_id: req.body.host_id,
+    });
     // Tìm và cập nhật trạng thái sản phẩm
     const updatedProduct = await Product.findOneAndUpdate(
       { _id: product_id },
@@ -196,7 +164,6 @@ exports.createAuction = async (req, res, next) => {
     //   console.error("Error occurred while creating AuctionBid:", auctionBidError);
     //   // You can choose to send an appropriate response here
     // }
-
 
     // Kiểm tra xem sản phẩm có tồn tại và được cập nhật không
     if (updatedProduct) {
@@ -241,6 +208,21 @@ exports.getAuctionByUserId = (req, res, next) => {
 exports.getAuctionByID = (req, res, next) => {
   Auctions.findById(req.params.auctionId)
     .populate("product_id")
+    .then(
+      (auction) => {
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "application/json");
+        res.json(auction);
+      },
+      (err) => next(err)
+    )
+    .catch((err) => next(err));
+};
+
+exports.getAuctionNotAuctionedByUser = (req, res, next) => {
+  Auctions.find({ host_id: req.params.host_id, status: "not" })
+    .populate("host_id", "fullName")
+    .populate("product_id", "name")
     .then(
       (auction) => {
         res.statusCode = 200;
@@ -343,6 +325,21 @@ exports.deleteAuctionByID = (req, res, next) => {
     )
     .catch((err) => next(err));
 };
+exports.getAuctionNotAuctioned = (req, res, next) => {
+  Auctions.find({ status: "not" })
+    .populate("host_id", "fullName")
+    .populate("product_id", "name")
+    .then(
+      (auction) => {
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "application/json");
+        res.json(auction);
+      },
+      (err) => next(err)
+    )
+    .catch((err) => next(err));
+};
+
 exports.getAuctionNotYetAuctioned = (req, res, next) => {
   Auctions.find({ status: "not yet auctioned" })
     .populate("host_id", "fullName")
@@ -518,7 +515,7 @@ exports.getMemberAuctionNotYet = async (req, res) => {
 
     // Lọc các đấu giá theo status
     const filteredAuctions = registeredAuctions.filter((auctionMember) => {
-      const auctionStatus = auctionMember.auction_id.status;
+      const auctionStatus = auctionMember.auction_id?.status;
       // Điều kiện lọc theo status, bạn có thể thay đổi tùy theo yêu cầu
       return auctionStatus === "not yet auctioned";
     });
@@ -576,7 +573,7 @@ exports.getMemberAuctionAboutTo = async (req, res) => {
     console.log("registeredAuctions", registeredAuctions);
     // Lọc các đấu giá theo status
     const filteredAuctions = registeredAuctions.filter((auctionMember) => {
-      const auctionStatus = auctionMember.auction_id.status;
+      const auctionStatus = auctionMember.auction_id?.status;
       // Điều kiện lọc theo status, bạn có thể thay đổi tùy theo yêu cầu
       return auctionStatus === "about to auction";
     });
@@ -634,7 +631,7 @@ exports.getMemberAuctionAuctioning = async (req, res) => {
 
     // Lọc các đấu giá theo status
     const filteredAuctions = registeredAuctions.filter((auctionMember) => {
-      const auctionStatus = auctionMember.auction_id.status;
+      const auctionStatus = auctionMember.auction_id?.status;
       // Điều kiện lọc theo status, bạn có thể thay đổi tùy theo yêu cầu
       return auctionStatus === "auctioning";
     });
@@ -692,11 +689,11 @@ exports.getMemberAuctionAuctioned = async (req, res) => {
 
     // Lọc các đấu giá theo status
     const filteredAuctions = registeredAuctions.filter((auctionMember) => {
-      const auctionStatus = auctionMember.auction_id.status;
+      const auctionStatus = auctionMember.auction_id?.status;
       // Điều kiện lọc theo status, bạn có thể thay đổi tùy theo yêu cầu
       return auctionStatus === "auctioned";
     });
-
+    console.log("memberAuctioned", filteredAuctions);
     // Tạo một mảng chứa thông tin cần thiết từ các đấu giá và sản phẩm
     const resultAuctions = filteredAuctions.map((auctionMember) => {
       const auction = auctionMember.auction_id;
@@ -754,6 +751,29 @@ exports.getMostPriceInAuctionBid = async (req, res, next) => {
   }
 };
 
+exports.getAllMemberInAuctionBid = async (req, res, next) => {
+  try {
+    const auctionId = req.params.auctionId;
+
+    // Kiểm tra xem auctionId đã được cung cấp hay chưa
+    if (!auctionId) {
+      return res.status(400).json({ error: "Auction ID is required." });
+    }
+
+    // Truy vấn cơ sở dữ liệu để tìm tất cả các thông tin từ cả hai bảng AuctionMembers và User
+    const auctionMembers = await AuctionMembers.find({ auction_id: auctionId })
+      .populate({
+        path: "member_id",
+        populate: { path: "role_id" }, // Populate role_id trong bảng User
+      })
+      .populate("auction_id"); // Populate thông tin về phiên đấu giá từ bảng Auction
+
+    res.json(auctionMembers); // Trả về danh sách các thành viên trong phiên đấu giá với thông tin đầy đủ
+  } catch (err) {
+    next(err);
+  }
+};
+
 exports.getAuctionsCreatedToday = async (req, res) => {
   try {
     const requestedDate = new Date(req.params.date);
@@ -771,7 +791,7 @@ exports.getAuctionsCreatedToday = async (req, res) => {
     // Sử dụng Mongoose để đếm số lượng sản phẩm được tạo trong ngày cụ thể
 
     const Count = await Auctions.countDocuments({
-      timestamp: { $gte: startOfDay, $lt: endOfDay }
+      timestamp: { $gte: startOfDay, $lt: endOfDay },
     }).exec();
 
     res.json({ Count });
@@ -780,7 +800,6 @@ exports.getAuctionsCreatedToday = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
 
 exports.getAuctionCount = async (req, res) => {
   try {
@@ -792,12 +811,12 @@ exports.getAuctionCount = async (req, res) => {
   }
 };
 
-
-
 exports.getNotYetAuctionCount = async (req, res) => {
   try {
-    const statusAuction = "not yet";
-    const Count = await Auctions.countDocuments({ status: statusAuction }).exec(); // Đếm số lượng phiên đấu giá có trạng thái là status
+    const statusAuction = "not yet auctioned";
+    const Count = await Auctions.countDocuments({
+      status: statusAuction,
+    }).exec(); // Đếm số lượng phiên đấu giá có trạng thái là status
     res.json({ Count });
   } catch (error) {
     console.error(error);
@@ -807,8 +826,10 @@ exports.getNotYetAuctionCount = async (req, res) => {
 
 exports.getAboutToAuctionCount = async (req, res, next) => {
   try {
-    const statusAuction = "about to";
-    const Count = await Auctions.countDocuments({ status: statusAuction }).exec(); // Đếm số lượng phiên đấu giá có trạng thái là status
+    const statusAuction = "about to auction";
+    const Count = await Auctions.countDocuments({
+      status: statusAuction,
+    }).exec(); // Đếm số lượng phiên đấu giá có trạng thái là status
     res.json({ Count });
   } catch (error) {
     console.error(error);
@@ -818,8 +839,10 @@ exports.getAboutToAuctionCount = async (req, res, next) => {
 
 exports.getAuctioningAuctionCount = async (req, res, next) => {
   try {
-    const statusAuction = "auctining";
-    const Count = await Auctions.countDocuments({ status: statusAuction }).exec(); // Đếm số lượng phiên đấu giá có trạng thái là status
+    const statusAuction = "auctioning";
+    const Count = await Auctions.countDocuments({
+      status: statusAuction,
+    }).exec(); // Đếm số lượng phiên đấu giá có trạng thái là status
     res.json({ Count });
   } catch (error) {
     console.error(error);
@@ -991,7 +1014,6 @@ exports.getAverageAuctionMembersTwodayAgo = async (req, res) => {
       twoDayAgo.getDate() + 1
     );
 
-
     // Sử dụng Mongoose để tính số lượng thành viên tham gia vào các phiên đấu giá trong hôm nay
     const totalMembers = await AuctionMember.countDocuments({
       timestamp: { $gte: startOfTwoDayAgo, $lt: endOfTwoDayAgo },
@@ -1015,10 +1037,48 @@ exports.getAverageAuctionMembersTwodayAgo = async (req, res) => {
 exports.getAuctionedAuctionCount = async (req, res, next) => {
   try {
     const statusAuction = "auctioned";
-    const Count = await Auctions.countDocuments({ status: statusAuction }).exec(); // Đếm số lượng phiên đấu giá có trạng thái là status
+    const Count = await Auctions.countDocuments({
+      status: statusAuction,
+    }).exec(); // Đếm số lượng phiên đấu giá có trạng thái là status
     res.json({ Count });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.updateAuction = async (req, res, next) => {
+  try {
+    const auctionId = req.params.auctionId;
+
+
+    // Tìm và cập nhật trạng thái sản phẩm
+    const updatedProduct = await Auctions.findOneAndUpdate(
+      { _id: auctionId },
+      {
+        $set: req.body,
+      },
+      { new: true }
+    );
+
+
+    // Kiểm tra xem sản phẩm có tồn tại và được cập nhật không
+    if (updatedProduct) {
+      // Sau khi phiên đấu giá được tạo, gọi hàm để lên lịch cập nhật trạng thái
+      await scheduleAuctionStatusUpdates(updatedProduct, req.app.get("socketio"));
+
+      res.statusCode = 200;
+      res.setHeader("Content-Type", "application/json");
+      res.json(updatedProduct);
+    } else {
+      res.statusCode = 404;
+      res.setHeader("Content-Type", "application/json");
+      res.json({
+        success: false,
+        message: "Auction not found or not updated.",
+      });
+    }
+  } catch (err) {
+    next(err);
   }
 };

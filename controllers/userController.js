@@ -7,6 +7,9 @@ const ReportRequest = require("../models/Report_Request");
 const Role = require("../models/Role");
 const Auction = require("../models/Auction");
 const AuctionMember = require("../models/Auction_Member");
+const Config = require("../config");
+const OTP = require("../models/OTP");
+
 
 exports.uploadImg = async (req, res) => {
   try {
@@ -123,7 +126,16 @@ exports.postAddUser = async (req, res, next) => {
 
     // Hash the password
     const hashedPassword = await bcrypt.hash(req.body.password, 10);
+    const existingUser = await User.findOne({
+      $or: [
+        { username: req.body.username },
+        { email: req.body.email }
+      ]
+    });
 
+    if (existingUser) {
+      return res.status(400).json({ success: false, message: "Username or email already exists." });
+    }
     // Create the user
     const user = await User.create({
       username: req.body.username,
@@ -443,7 +455,7 @@ exports.getHostCountTwodayAgo = async (req, res) => {
 exports.getMemberCount = async (req, res, next) => {
   try {
     // Tìm vai trò "Member"
-    const memberRole = await Role.findOne({ title: "Member" }).exec();
+    const memberRole = await Role.findOne({ title: "MEMBER" }).exec();
 
     // Nếu không tìm thấy vai trò, trả về số lượng người dùng là 0
     if (!memberRole) {
@@ -452,7 +464,9 @@ exports.getMemberCount = async (req, res, next) => {
     }
 
     // Đếm số lượng người dùng có role_id trùng với ObjectId của vai trò "Member"
-    const memberCount = await User.countDocuments({ role_id: memberRole._id }).exec();
+    const memberCount = await User.countDocuments({
+      role_id: memberRole._id,
+    }).exec();
     const Count = await Auction.countDocuments().exec();
 
     res.json({ memberCount });
@@ -474,7 +488,9 @@ exports.getHostCount = async (req, res, next) => {
     }
 
     // Đếm số lượng người dùng có role_id trùng với ObjectId của vai trò "Member"
-    const memberCount = await User.countDocuments({ role_id: memberRole._id }).exec();
+    const memberCount = await User.countDocuments({
+      role_id: memberRole._id,
+    }).exec();
 
     res.json({ memberCount });
   } catch (error) {
@@ -495,15 +511,139 @@ exports.getAgvMemberAuction = async (req, res, next) => {
       return res.status(404).json({ error: "No users found with role MEMBER" });
     }
     // Đếm số lượng AuctionMember có member_id là các user thuộc role "MEMBER"
-    const memberCount = await AuctionMember.countDocuments({ member_id: { $in: members.map(member => member._id) } });
+    const memberCount = await AuctionMember.countDocuments({
+      member_id: { $in: members.map((member) => member._id) },
+    });
     const auctionCount = await Auction.countDocuments({}).exec();
-    if (auctionCount.length === 0||auctionCount==null) {
-      return res.status(404).json({ error: "No auction found to caculate agv member join in auction per auction" });
+    if (auctionCount.length === 0 || auctionCount == null) {
+      return res
+        .status(404)
+        .json({
+          error:
+            "No auction found to caculate agv member join in auction per auction",
+        });
     }
-    const avgCount = memberCount / auctionCount; 
+    const avgCount = memberCount / auctionCount;
     res.json({ avgCount });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+const nodemailer = require('nodemailer');
+
+
+// Send mail function
+async function sendVerificationEmail(userEmail, subject, text) {
+  try {
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: Config.ADMIN_EMAIL,
+        pass: Config.ADMIN_PASS_EMAIL
+      }
+    });
+    const mailOptions = {
+      from: Config.ADMIN_EMAIL,
+      to: userEmail,
+      subject: subject,
+      text: text
+    };
+
+    await transporter.sendMail(mailOptions);
+    // console.log('Verification email sent successfully.');
+  } catch (error) {
+    // console.error('Error sending verification email:', error);
+    throw error;
+  }
+}
+
+exports.sendMailOTP = async (req, res, next) => {
+  try {
+    // Tạo mã xác thực ngẫu nhiên 6 so
+    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const email = req.body.UserMail;
+
+    const user = await User.findOne({ email });
+    if (user != null) {
+      return res
+        .status(400)
+        .json({
+          error:
+            "This email is used!",
+        });
+    }
+    // Kiểm tra xem email đã tồn tại trong cơ sở dữ liệu OTP chưa
+    let userOTP = await OTP.findOne({ user_mail: email });
+    if (!userOTP) {
+      // Nếu email chưa tồn tại, tạo mới một bản ghi OTP
+      userOTP = new OTP({
+        user_mail: email,
+        otp_code: verificationCode
+      });
+    } else {
+      // Nếu email đã tồn tại, cập nhật mã xác thực của bản ghi OTP
+      userOTP.otp_code = verificationCode;
+    }
+
+    // Lưu thông tin người dùng và mã xác thực vào cơ sở dữ liệu OTP
+    await userOTP.save();
+    const subject = 'Verification Code for Registration';
+    const text = `Your verification code is: ${verificationCode}`;
+    // Gửi email xác thực
+    await sendVerificationEmail(email, subject, text);
+
+    res.status(200).json({ message: 'Verification email sent successfully.' });
+  } catch (error) {
+    console.error('Error registering user:', error);
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+};
+
+exports.checkOTP = async (req, res, next) => {
+  try {
+    const { user_mail, otp_code } = req.body;
+
+    // Kiểm tra xem mã xác thực có khớp với mã trong cơ sở dữ liệu hay không
+    const OTPObject = await OTP.findOne({ user_mail: user_mail, otp_code: otp_code });
+    if (!OTPObject) {
+      return res.status(400).json({ message: 'Invalid verification code.' });
+    }
+
+    res.status(200).json({ message: 'Email verified successfully.' });
+  } catch (error) {
+    console.error('Error verifying email:', error);
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+};
+
+exports.getAllOTP = (req, res, next) => {
+  OTP.find({})
+    .then(
+      (course) => {
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "application/json");
+        res.json(course);
+      },
+      (err) => next(err)
+    )
+    .catch((err) => next(err));
+};
+
+
+exports.postAddOTP = async (req, res, next) => {
+  try {
+
+    const user = await OTP.create({
+      user_mail: req.body.UserMail,
+      otp_code: req.body.OTPCode
+    });
+
+    // Return success response
+    res.status(200).json({ success: true, status: "Registration Successful!" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
