@@ -456,30 +456,26 @@ exports.updateOrder = (req, res, next) => {
     .catch((err) => next(err));
 };
 
-exports.getOrderByMemberID = (req, res, next) => {
-  Orders.find({ winner_id: req.params.memberId })
-    .then(
-      (order) => {
-        res.statusCode = 200;
-        res.setHeader("Content-Type", "application/json");
-        res.json(order);
-      },
-      (err) => next(err)
-    )
-    .catch((err) => next(err));
+exports.getOrderByMemberID = async (req, res) => {
+  const winnerId = req.params.memberId;
+  try {
+    const orders = await Orders.find({ winner_id: winnerId });
+    res.json(orders);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };
 
-exports.getOrderByHostID = (req, res, next) => {
-  Orders.find({ host_id: req.params.hostId })
-    .then(
-      (order) => {
-        res.statusCode = 200;
-        res.setHeader("Content-Type", "application/json");
-        res.json(order);
-      },
-      (err) => next(err)
-    )
-    .catch((err) => next(err));
+exports.getOrderByHostID = async (req, res) => {
+  try {
+    const hostId = req.params.hostId;
+    // Sử dụng phương thức find của Mongoose để tìm tất cả các đơn hàng với host_id cụ thể
+    const orders = await Orders.find({ host_id: hostId });
+    res.json(orders);
+  } catch (error) {
+    console.error("Error fetching orders by host_id:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 };
 
 exports.checkAuctionParticipation = async (req, res) => {

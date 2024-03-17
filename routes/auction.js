@@ -171,7 +171,6 @@ router.get("/AuctionToday/:date", auctionController.getAuctionsCreatedToday);
 
 
 
-
 // router.get(
 //   "/AuctionToday",
 //   authenticateJWT,
