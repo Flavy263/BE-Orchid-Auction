@@ -591,18 +591,19 @@ exports.getDepositAmount = async (req, res, next) => {
   try {
     const totalDepositAmount = await WalletHistorys.aggregate([
       {
-        $match: { type: "deposit" } // Lọc các giao dịch loại "deposit"
+        $match: { type: "deposit" }, // Lọc các giao dịch loại "deposit"
       },
       {
         $group: {
           _id: null, // Nhóm tất cả các giao dịch vào một nhóm duy nhất
-          totalAmount: { $sum: "$amount" } // Tính tổng số tiền (amount)
-        }
-      }
+          totalAmount: { $sum: "$amount" }, // Tính tổng số tiền (amount)
+        },
+      },
     ]);
 
     // Lấy tổng số tiền nạp vào từ kết quả
-    const depositAmount = totalDepositAmount.length > 0 ? totalDepositAmount[0].totalAmount : 0;
+    const depositAmount =
+      totalDepositAmount.length > 0 ? totalDepositAmount[0].totalAmount : 0;
 
     res.json({ depositAmount });
   } catch (error) {
@@ -615,22 +616,137 @@ exports.getWithdrawAmount = async (req, res, next) => {
   try {
     const totalDepositAmount = await WalletHistorys.aggregate([
       {
-        $match: { type: "withdraw" } // Lọc các giao dịch loại "deposit"
+        $match: { type: "withdraw" }, // Lọc các giao dịch loại "deposit"
       },
       {
         $group: {
           _id: null, // Nhóm tất cả các giao dịch vào một nhóm duy nhất
-          totalAmount: { $sum: "$amount" } // Tính tổng số tiền (amount)
-        }
-      }
+          totalAmount: { $sum: "$amount" }, // Tính tổng số tiền (amount)
+        },
+      },
     ]);
 
     // Lấy tổng số tiền nạp vào từ kết quả
-    const depositAmount = totalDepositAmount.length > 0 ? totalDepositAmount[0].totalAmount : 0;
+    const depositAmount =
+      totalDepositAmount.length > 0 ? totalDepositAmount[0].totalAmount : 0;
 
     res.json({ depositAmount });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+const config = {
+  app_id: "52515",
+  key1: "PcY4iZIKFCIdgZvA6ueMcMHHUbRLYjPL",
+  key2: "kLtgPl8HHhfvMuDHPwKfgfsY4Ydm9eIz",
+  endpoint: "https://sb-openapi.zalopay.vn/v2/create",
+};
+
+exports.createPaymentRequest = async (req, res) => {
+  try {
+    const { user_id, amount } = req.body;
+  
+    // Tạo yêu cầu thanh toán
+    const transID = Math.floor(Math.random() * 1000000);
+    const order = {
+      app_id: config.app_id,
+      app_trans_id: `${moment().format("YYMMDD")}_${transID}`,
+      app_user: "user123",
+      app_time: Date.now(),
+      item: JSON.stringify([{}]),
+      embed_data: JSON.stringify({}),
+      amount: amount,
+      description: `Payment for user ${user_id}`,
+      bank_code: "zalopayapp",
+    };
+    const data =
+      order.app_id +
+      "|" +
+      order.app_trans_id +
+      "|" +
+      order.app_user +
+      "|" +
+      order.amount +
+      "|" +
+      order.app_time +
+      "|" +
+      order.embed_data +
+      "|" +
+      order.item;
+    order.mac = CryptoJS.HmacSHA256(data, config.key1).toString();
+
+    const response = await axios.post(config.endpoint, null, { params: order });
+
+    // Lưu yêu cầu thanh toán vào database
+    const reportRequest = new ReportRequest({
+      user_id: user_id,
+      type_report: "Money",
+      description: `Payment for user ${user_id} with ${amount}vnđ`,
+    });
+    await reportRequest.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Payment request created successfully",
+      qr_code: response.data.qr_code,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+exports.checkPayment = async (req, res) => {
+  try {
+    const {
+      app_id,
+      app_trans_id,
+      app_user,
+      amount,
+      app_time,
+      embed_data,
+      item,
+      bank_code,
+      mac,
+    } = req.body;
+
+    // Kiểm tra tính hợp lệ của mã MAC
+    const data =
+      app_id +
+      "|" +
+      app_trans_id +
+      "|" +
+      app_user +
+      "|" +
+      amount +
+      "|" +
+      app_time +
+      "|" +
+      embed_data +
+      "|" +
+      item;
+    const expected_mac = CryptoJS.HmacSHA256(
+      data,
+      config.key2
+    ).toString();
+    if (mac !== expected_mac) {
+      return res.status(400).json({ success: false, message: "Invalid MAC" });
+    }
+
+    // Thực hiện kiểm tra kết quả thanh toán (giả sử thành công)
+    // Đánh dấu yêu cầu thanh toán là đã thanh toán thành công
+    await ReportRequest.findOneAndUpdate(
+      { app_trans_id: app_trans_id },
+      { status: false, update_timestamp: Date.now() }
+    );
+
+    // Cập nhật ví và ghi log lịch sử giao dịch trong Wallet_History (việc này cần xử lý theo logic của ứng dụng của bạn)
+
+    res.status(200).json({ success: true, message: "Payment successful" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };

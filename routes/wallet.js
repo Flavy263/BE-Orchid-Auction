@@ -10,6 +10,10 @@ router.get("/", authenticateJWT, walletController.getWallet);
 router.get("/DepositAmount", walletController.getDepositAmount);
 router.get("/WithdrawAmount", walletController.getWithdrawAmount);
 
+router.post("createPaymentRequest", authenticateJWT, walletController.createPaymentRequest);
+router.post("checkPayment", authenticateJWT, walletController.checkPayment);
+
+
 router.get(
   "/walletHistory",
   authenticateJWT,
