@@ -104,8 +104,13 @@ exports.createAuction = async (req, res, next) => {
   try {
     const product_id = req.body.product_id;
 
+    // Check if the host_id exists and has status true
+    const host = await User.findOne({ _id: req.body.host_id, status: true });
+    if (!host) {
+      return res.status(400).json({ error: "You are banned!!!" });
+    }
+
     const wallet = await Wallets.findOne({ user_id: req.body.host_id });
-    console.log(wallet);
 
     if (!wallet) {
       return res.status(400).json({ error: "User has no wallet!" });
