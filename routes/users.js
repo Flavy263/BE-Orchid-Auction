@@ -50,7 +50,6 @@ router.post("/login", userController.postLoginUser);
 
 router.post("/register", upload.single("image"), userController.postAddUser);
 
-router.post("/login", userController.postLoginUser);
 
 router.get(
   "/getMemberCountToday",

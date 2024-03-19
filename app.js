@@ -17,6 +17,8 @@ const orderRouter = require("./routes/order");
 
 const Orders = require("./models/Order")
 const Auction = require("./models/Auction")
+const Auction_bid = require("./models/Auction_Bid")
+
 const cors = require("cors");
 var app = express();
 const mongoose = require("mongoose");
@@ -41,14 +43,19 @@ io.on("connection", (socket) => {
   console.log("A client connected");
   socket.on("auctionEnded", async (data) => {
     try {
+      console.log("dataaaa", data);
       // Tạo order dựa trên thông tin nhận được từ client
+      const highestBid = await Auction_bid.findOne({ auction_id: data.auction_id })
+        .sort({ price: -1 }) // Sắp xếp theo giá giảm dần để lấy giá lớn nhất
+        .limit(1);
+      console.log("highhh", highestBid);
       const order = await Orders.create({
         // Thêm các trường thông tin của order từ dữ liệu nhận được từ client
         // Ví dụ:
-        winner_id: data.winner_id,
-        auction_id: data.auction_id,
+        winner_id: highestBid.customer_id,
+        auction_id: highestBid.auction_id,
         host_id: data.host_id,
-        price: data.price,
+        price: highestBid.price,
         // Thêm các trường khác tùy theo yêu cầu của ứng dụng
       });
       await Auction.findByIdAndUpdate(data.auction_id, { status: "auctioned" });
@@ -123,6 +130,7 @@ app.use(function (err, req, res, next) {
 });
 
 var passport = require("passport");
+const AuctionBid = require("./models/Auction_Bid");
 
 app.use(
   session({

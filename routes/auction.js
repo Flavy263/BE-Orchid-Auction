@@ -119,12 +119,12 @@ router.put(
 );
 
 router.get(
-  "/getOrder/:memberId",
+  "/getOrderMember/:memberId",
   authenticateJWT,
   auctionController.getOrderByMemberID
 );
 router.get(
-  "/getOrder/:hostId",
+  "/getOrderHost/:hostId",
   authenticateJWT,
   auctionController.getOrderByHostID
 );
