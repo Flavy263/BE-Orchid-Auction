@@ -647,3 +647,22 @@ exports.postAddOTP = async (req, res, next) => {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
+
+exports.updateUserByID = (req, res, next) => {
+  User.findByIdAndUpdate(
+    req.params.userId,
+    {
+      $set: req.body,
+    },
+    { new: true }
+  )
+    .then(
+      (role) => {
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "application/json");
+        res.json(role);
+      },
+      (err) => next(err)
+    )
+    .catch((err) => next(err));
+};
