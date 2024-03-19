@@ -461,7 +461,10 @@ exports.updateOrder = (req, res, next) => {
 exports.getOrderByMemberID = async (req, res) => {
   const winnerId = req.params.memberId;
   try {
-    const orders = await Orders.find({ winner_id: winnerId });
+    const orders = await Orders.find({
+      winner_id: winnerId,
+      host_id: winnerId,
+    });
     res.json(orders);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -1056,7 +1059,6 @@ exports.updateAuction = async (req, res, next) => {
   try {
     const auctionId = req.params.auctionId;
 
-
     // Tìm và cập nhật trạng thái sản phẩm
     const updatedProduct = await Auctions.findOneAndUpdate(
       { _id: auctionId },
@@ -1066,11 +1068,13 @@ exports.updateAuction = async (req, res, next) => {
       { new: true }
     );
 
-
     // Kiểm tra xem sản phẩm có tồn tại và được cập nhật không
     if (updatedProduct) {
       // Sau khi phiên đấu giá được tạo, gọi hàm để lên lịch cập nhật trạng thái
-      await scheduleAuctionStatusUpdates(updatedProduct, req.app.get("socketio"));
+      await scheduleAuctionStatusUpdates(
+        updatedProduct,
+        req.app.get("socketio")
+      );
 
       res.statusCode = 200;
       res.setHeader("Content-Type", "application/json");
