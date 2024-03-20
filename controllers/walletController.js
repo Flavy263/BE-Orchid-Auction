@@ -42,7 +42,7 @@ exports.getAllWalletHistory = (req, res, next) => {
 
 exports.getWalletByUserId = (req, res, next) => {
   const user_id = req.params.userId;
-  console.log("userId", user_id);
+  // console.log("userId", user_id);
   Wallets.findOne({ user_id })
     .then(
       (wallet) => {
@@ -59,7 +59,7 @@ exports.createEmptyWallet = (req, res, next) => {
   Wallets.create({})
     .then(
       (wallet) => {
-        console.log("Wallet Created ", wallet);
+        // console.log("Wallet Created ", wallet);
         res.statusCode = 200;
         res.setHeader("Content-Type", "application/json");
         res.json(wallet);
@@ -73,7 +73,7 @@ exports.createWallet = (req, res, next) => {
   Wallets.create(req.body)
     .then(
       (wallet) => {
-        console.log("Wallet Created ", wallet);
+        // console.log("Wallet Created ", wallet);
         res.statusCode = 200;
         res.setHeader("Content-Type", "application/json");
         res.json(wallet);
@@ -253,7 +253,7 @@ exports.registerJoinInAuction = async (req, res) => {
 
     // So sánh ví tiền của user và giá khởi điểm của auction
     const config = await Config.findOne({ type_config: "Join in auction" });
-    console.log(config.money);
+    // console.log(config.money);
     if (wallet.balance < config.money) {
       return res
         .status(400)

@@ -9,7 +9,7 @@ const Auction = require("../models/Auction");
 const AuctionMember = require("../models/Auction_Member");
 const Config = require("../config");
 const OTP = require("../models/OTP");
-
+const nodemailer = require('nodemailer');
 
 exports.uploadImg = async (req, res) => {
   try {
@@ -531,7 +531,7 @@ exports.getAgvMemberAuction = async (req, res, next) => {
   }
 };
 
-const nodemailer = require('nodemailer');
+
 
 
 // Send mail function

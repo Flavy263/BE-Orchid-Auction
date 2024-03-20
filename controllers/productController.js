@@ -107,7 +107,7 @@ exports.postAddProduct = async (req, res) => {
     const savedProduct = await newProduct.save();
 
     // In ra thông tin sản phẩm sau khi đăng ký thành công
-    console.log("Product created:", savedProduct);
+    // console.log("Product created:", savedProduct);
 
     res
       .status(200)
@@ -128,7 +128,7 @@ exports.putUpdateProduct = (req, res, next) => {
   )
     .then(
       (product) => {
-        console.log(product);
+        // console.log(product);
         res.statusCode = 200;
         res.setHeader("Content-Type", "application/json");
         res.json({

@@ -9,6 +9,9 @@ const WalletHistorys = require("../models/Wallet_History");
 const Config = require("../models/Config");
 const Auction_bid = require("../models/Auction_Bid");
 const AuctionMembers = require("../models/Auction_Member");
+const AuctionMember = require("../models/Auction_Member");
+const AuctionBid = require("../models/Auction_Bid");
+const User = require("../models/User");
 
 // Đường dẫn đến model của phiên đấu giá
 // router.post('/newAuction', async (req, res) => {
@@ -39,7 +42,7 @@ async function updateAuctionStatus(auctionId, newStatus, io) {
       { status: newStatus },
       { new: true }
     );
-    console.log(`Updated status of auction ${auctionId} to ${newStatus}`);
+    // console.log(`Updated status of auction ${auctionId} to ${newStatus}`);
     if (io) {
       io.emit("auction_status_changed", { auctionId, newStatus });
     } else {
@@ -117,8 +120,8 @@ exports.createAuction = async (req, res, next) => {
     }
 
     const config = await Config.findOne({ type_config: "Create auction" });
-    console.log("money", config);
-    console.log("money", config);
+    // console.log("money", config);
+    // console.log("money", config);
     if (wallet.balance < config.money) {
       return res
         .status(400)
@@ -405,8 +408,7 @@ exports.getAuctionaAuctioned = (req, res, next) => {
     .catch((err) => next(err));
 };
 
-const AuctionMember = require("../models/Auction_Member");
-const AuctionBid = require("../models/Auction_Bid");
+
 
 exports.checkUserInAuction = (auctionId, userId) => {
   return AuctionMember.findOne({ auction_id: auctionId, member_id: userId })
@@ -425,7 +427,7 @@ exports.createOrder = (req, res, next) => {
   Orders.create(req.body)
     .then(
       (order) => {
-        console.log("Order Created ", order);
+        // console.log("Order Created ", order);
         res.statusCode = 200;
         res.setHeader("Content-Type", "application/json");
         res.json(order);
@@ -459,17 +461,20 @@ exports.updateOrder = (req, res, next) => {
 };
 
 exports.getOrderByMemberID = async (req, res) => {
-  const winnerId = req.params.memberId;
+  const memberId = req.params.memberId;
   try {
     const orders = await Orders.find({
-      winner_id: winnerId,
-      host_id: winnerId,
+      $and: [
+        { winner_id: memberId },
+        { host_id: memberId }
+      ]
     });
     res.json(orders);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
+
 
 exports.getOrderByHostID = async (req, res) => {
   try {
@@ -556,7 +561,7 @@ exports.getMemberAuctionNotYet = async (req, res) => {
         },
       };
     });
-    console.log(resultAuctions);
+    // console.log(resultAuctions);
     res.status(200).json(resultAuctions);
   } catch (error) {
     console.error(error);
@@ -578,7 +583,7 @@ exports.getMemberAuctionAboutTo = async (req, res) => {
         model: "Product",
       },
     });
-    console.log("registeredAuctions", registeredAuctions);
+    // console.log("registeredAuctions", registeredAuctions);
     // Lọc các đấu giá theo status
     const filteredAuctions = registeredAuctions.filter((auctionMember) => {
       const auctionStatus = auctionMember.auction_id?.status;
@@ -614,7 +619,7 @@ exports.getMemberAuctionAboutTo = async (req, res) => {
         },
       };
     });
-    console.log(resultAuctions);
+    // console.log(resultAuctions);
     res.status(200).json(resultAuctions);
   } catch (error) {
     console.error(error);
@@ -672,7 +677,7 @@ exports.getMemberAuctionAuctioning = async (req, res) => {
         },
       };
     });
-    console.log(resultAuctions);
+    // console.log(resultAuctions);
     res.status(200).json(resultAuctions);
   } catch (error) {
     console.error(error);
@@ -701,7 +706,7 @@ exports.getMemberAuctionAuctioned = async (req, res) => {
       // Điều kiện lọc theo status, bạn có thể thay đổi tùy theo yêu cầu
       return auctionStatus === "auctioned";
     });
-    console.log("memberAuctioned", filteredAuctions);
+    // console.log("memberAuctioned", filteredAuctions);
     // Tạo một mảng chứa thông tin cần thiết từ các đấu giá và sản phẩm
     const resultAuctions = filteredAuctions.map((auctionMember) => {
       const auction = auctionMember.auction_id;
@@ -730,7 +735,7 @@ exports.getMemberAuctionAuctioned = async (req, res) => {
         },
       };
     });
-    console.log(resultAuctions);
+    // console.log(resultAuctions);
     res.status(200).json(resultAuctions);
   } catch (error) {
     console.error(error);

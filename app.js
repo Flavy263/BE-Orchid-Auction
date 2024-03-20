@@ -44,32 +44,39 @@ io.on("connection", (socket) => {
   socket.on("auctionEnded", async (data) => {
     try {
       console.log("dataaaa", data);
+
+      // Kiểm tra trạng thái của đấu giá trước khi tạo order
+      const auction = await Auction.findById(data.auction_id);
+      if (auction.status === "auctioned") {
+        console.log("Auction has ended. Cannot create new order.");
+        return;
+      }
+      console.log("auction1111", auction);
+
       // Tạo order dựa trên thông tin nhận được từ client
       const highestBid = await Auction_bid.findOne({ auction_id: data.auction_id })
         .sort({ price: -1 }) // Sắp xếp theo giá giảm dần để lấy giá lớn nhất
         .limit(1);
       console.log("highhh", highestBid);
+
       const order = await Orders.create({
-        // Thêm các trường thông tin của order từ dữ liệu nhận được từ client
-        // Ví dụ:
         winner_id: highestBid.customer_id,
         auction_id: highestBid.auction_id,
         host_id: data.host_id,
         price: highestBid.price,
-        // Thêm các trường khác tùy theo yêu cầu của ứng dụng
       });
+
       await Auction.findByIdAndUpdate(data.auction_id, { status: "auctioned" });
       console.log("Order Created ", order);
-      // Gửi thông báo về client rằng order đã được tạo thành công
-      // Bạn có thể gửi thông báo này thông qua Socket.IO hoặc các phương thức khác
     } catch (err) {
       console.error("Error creating order: ", err);
-      // Xử lý lỗi nếu có
     }
   });
+
   socket.on("disconnect", () => {
     console.log("A client disconnected");
   });
+
 });
 app.use((req, res, next) => {
   req.io = io;
@@ -131,6 +138,7 @@ app.use(function (err, req, res, next) {
 
 var passport = require("passport");
 const AuctionBid = require("./models/Auction_Bid");
+const Order = require("./models/Order");
 
 app.use(
   session({

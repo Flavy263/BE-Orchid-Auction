@@ -19,15 +19,11 @@ exports.handleCheckPrice = async (priceStep, customerPrice, auctionPrice) => {
 exports.handleNewBid = async (req, res) => {
   try {
     const { auctionId, customerId } = req.params; // Lấy auctionId và customerId từ params
-    console.log(auctionId);
-    console.log(customerId);
     const { price } = req.body; // Lấy price từ req.body
-    console.log("price", price);
     const auction = await Auction.findById(auctionId);
     const customer = await User.findById(customerId);
     const auctionBid = await AuctionBid.find({ auction_id: auctionId });
     const customerWallet = await Wallet.find({ user_id: customerId })
-    console.log("bid", auctionBid);
     if (!auctionBid) {
       throw new Error("AuctionBid not found");
     }
@@ -114,7 +110,6 @@ exports.getAuctionBidSortDes = async (req, res) => {
     const auctionBids = await AuctionBid.find({ auction_id: auctionId })
       .sort({ price: -1 }) // Sắp xếp theo giảm dần của giá
       .exec();
-    console.log("le",auctionBids.length);
     if (auctionBids.length > 1) {
       auctionBids.pop(); // Loại bỏ bản ghi cuối cùng, có giá nhỏ nhất
     }

@@ -133,7 +133,7 @@ exports.postAddReportRequest = (req, res, next) => {
   Report_Request.create(req.body)
     .then(
       (walletRequest) => {
-        console.log("Product Created ", walletRequest);
+        // console.log("Product Created ", walletRequest);
         res.statusCode = 200;
         res.setHeader("Content-Type", "application/json");
         res.json({

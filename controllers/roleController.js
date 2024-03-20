@@ -17,7 +17,7 @@ exports.createRole = (req, res, next) => {
   Roles.create(req.body)
     .then(
       (role) => {
-        console.log("Role Created ", role);
+        // console.log("Role Created ", role);
         res.statusCode = 200;
         res.setHeader("Content-Type", "application/json");
         res.json(role);
