@@ -104,8 +104,13 @@ exports.createAuction = async (req, res, next) => {
   try {
     const product_id = req.body.product_id;
 
+    // Check if the host_id exists and has status true
+    const host = await User.findOne({ _id: req.body.host_id, status: true });
+    if (!host) {
+      return res.status(400).json({ error: "You are banned!!!" });
+    }
+
     const wallet = await Wallets.findOne({ user_id: req.body.host_id });
-    console.log(wallet);
 
     if (!wallet) {
       return res.status(400).json({ error: "User has no wallet!" });
@@ -453,30 +458,29 @@ exports.updateOrder = (req, res, next) => {
     .catch((err) => next(err));
 };
 
-exports.getOrderByMemberID = (req, res, next) => {
-  Orders.find({ winner_id: req.params.memberId })
-    .then(
-      (order) => {
-        res.statusCode = 200;
-        res.setHeader("Content-Type", "application/json");
-        res.json(order);
-      },
-      (err) => next(err)
-    )
-    .catch((err) => next(err));
+exports.getOrderByMemberID = async (req, res) => {
+  const winnerId = req.params.memberId;
+  try {
+    const orders = await Orders.find({
+      winner_id: winnerId,
+      host_id: winnerId,
+    });
+    res.json(orders);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };
 
-exports.getOrderByHostID = (req, res, next) => {
-  Orders.find({ host_id: req.params.hostId })
-    .then(
-      (order) => {
-        res.statusCode = 200;
-        res.setHeader("Content-Type", "application/json");
-        res.json(order);
-      },
-      (err) => next(err)
-    )
-    .catch((err) => next(err));
+exports.getOrderByHostID = async (req, res) => {
+  try {
+    const hostId = req.params.hostId;
+    // Sử dụng phương thức find của Mongoose để tìm tất cả các đơn hàng với host_id cụ thể
+    const orders = await Orders.find({ host_id: hostId });
+    res.json(orders);
+  } catch (error) {
+    console.error("Error fetching orders by host_id:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 };
 
 exports.checkAuctionParticipation = async (req, res) => {
@@ -1055,19 +1059,22 @@ exports.updateAuction = async (req, res, next) => {
   try {
     const auctionId = req.params.auctionId;
 
-
     // Tìm và cập nhật trạng thái sản phẩm
     const updatedProduct = await Auctions.findOneAndUpdate(
       { _id: auctionId },
-      { $set: { status: true } },
+      {
+        $set: req.body,
+      },
       { new: true }
     );
-
 
     // Kiểm tra xem sản phẩm có tồn tại và được cập nhật không
     if (updatedProduct) {
       // Sau khi phiên đấu giá được tạo, gọi hàm để lên lịch cập nhật trạng thái
-      await scheduleAuctionStatusUpdates(updatedProduct, req.app.get("socketio"));
+      await scheduleAuctionStatusUpdates(
+        updatedProduct,
+        req.app.get("socketio")
+      );
 
       res.statusCode = 200;
       res.setHeader("Content-Type", "application/json");
