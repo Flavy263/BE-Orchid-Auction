@@ -217,8 +217,6 @@ exports.browseDeposit = async (req, res) => {
   }
 };
 
-const mongoose = require("mongoose");
-
 exports.registerJoinInAuction = async (req, res) => {
   try {
     const { userId, auctionId } = req.body;

@@ -124,18 +124,21 @@ exports.postAddUser = async (req, res, next) => {
     // Get the Cloudinary image URL
     const imageUrl = req.file.path;
 
+    // Check if username already exists
+    const existingUsername = await User.findOne({ username: req.body.username });
+    if (existingUsername) {
+      return res.status(400).json({ success: false, message: "Username already exists." });
+    }
+
+    // Check if email already exists
+    const existingEmail = await User.findOne({ email: req.body.email });
+    if (existingEmail) {
+      return res.status(400).json({ success: false, message: "Email already exists." });
+    }
+
     // Hash the password
     const hashedPassword = await bcrypt.hash(req.body.password, 10);
-    const existingUser = await User.findOne({
-      $or: [
-        { username: req.body.username },
-        { email: req.body.email }
-      ]
-    });
 
-    if (existingUser) {
-      return res.status(400).json({ success: false, message: "Username or email already exists." });
-    }
     // Create the user
     const user = await User.create({
       username: req.body.username,
@@ -157,12 +160,13 @@ exports.postAddUser = async (req, res, next) => {
     });
 
     // Return success response
-    res.status(200).json({ success: true, status: "Registration Successful!" });
+    res.status(200).json({ success: true, message: "Registration Successful!" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
+
 
 exports.postLoginUser = async (req, res, next) => {
   try {
@@ -646,4 +650,23 @@ exports.postAddOTP = async (req, res, next) => {
     console.error(error);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
+};
+
+exports.updateUserByID = (req, res, next) => {
+  User.findByIdAndUpdate(
+    req.params.userId,
+    {
+      $set: req.body,
+    },
+    { new: true }
+  )
+    .then(
+      (role) => {
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "application/json");
+        res.json(role);
+      },
+      (err) => next(err)
+    )
+    .catch((err) => next(err));
 };
