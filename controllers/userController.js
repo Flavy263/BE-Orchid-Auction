@@ -126,15 +126,20 @@ exports.postAddUser = async (req, res, next) => {
 
     // Check if username already exists
     const existingUsername = await User.findOne({ username: req.body.username });
+    const existingEmail = await User.findOne({ email: req.body.email });
+    if (existingUsername && existingEmail) {
+      return res.status(400).json({ success: false, message: "Username and email already exist." });
+    }
     if (existingUsername) {
       return res.status(400).json({ success: false, message: "Username already exists." });
     }
 
     // Check if email already exists
-    const existingEmail = await User.findOne({ email: req.body.email });
+
     if (existingEmail) {
       return res.status(400).json({ success: false, message: "Email already exists." });
     }
+
 
     // Hash the password
     const hashedPassword = await bcrypt.hash(req.body.password, 10);
@@ -177,7 +182,7 @@ exports.postLoginUser = async (req, res, next) => {
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: "Authentication failed. Invalid username or password.",
+        message: "Username và password không chính xác.",
       });
     }
 
@@ -186,7 +191,7 @@ exports.postLoginUser = async (req, res, next) => {
       if (err || !result) {
         return res.status(401).json({
           success: false,
-          message: "Authentication failed. Invalid username or password.",
+          message: "Password không chính xác.",
         });
       }
       // Nếu mật khẩu hợp lệ, tạo mã token và trả về cho người dùng

@@ -125,7 +125,7 @@ exports.createAuction = async (req, res, next) => {
     if (wallet.balance < config.money) {
       return res
         .status(400)
-        .json({ error: "Not enough money to place a bid!" });
+        .json({ error: "Không đủ tiền để tạo cuộc đấu giá!" });
     }
 
     // Trừ tiền từ ví

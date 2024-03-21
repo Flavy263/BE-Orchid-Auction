@@ -248,7 +248,7 @@ exports.registerJoinInAuction = async (req, res) => {
     if (participation) {
       return res
         .status(400)
-        .json({ message: "You have entered this auction!" });
+        .json({ message: "Bạn đã tham gia cuộc đấu giá này!" });
     }
 
     // So sánh ví tiền của user và giá khởi điểm của auction
@@ -257,7 +257,7 @@ exports.registerJoinInAuction = async (req, res) => {
     if (wallet.balance < config.money) {
       return res
         .status(400)
-        .json({ error: "Not enough money to place a bid!" });
+        .json({ error: "Không đủ tiền để tham gia cuộc đấu giá cho sản phẩm!" });
     }
 
     // Trừ tiền từ ví
@@ -279,7 +279,7 @@ exports.registerJoinInAuction = async (req, res) => {
     });
     await auctionMember.save();
 
-    res.status(200).json({ message: "Bid placed successfully." });
+    res.status(200).json({ message: "Đã đặt giá thầu thành công." });
   } catch (error) {
     console.error("Error placing bid:", error);
     res.status(500).json({ error: "Internal Server Error" });

@@ -47,18 +47,26 @@ io.on("connection", (socket) => {
 
       // Kiểm tra trạng thái của đấu giá trước khi tạo order
       const auction = await Auction.findById(data.auction_id);
-      if (auction.status === "auctioned") {
-        console.log("Auction has ended. Cannot create new order.");
-        return;
-      }
-      console.log("auction1111", auction);
+
+      const endTime = new Date(auction.end_time).getTime();
+      const currentTime = new Date(data.date).getTime();
+
+      // if (currentTime >= endTime) {
+      //   console.log("Auction has ended. Cannot create new order.");
+      //   return;
+      // }
 
       // Tạo order dựa trên thông tin nhận được từ client
       const highestBid = await Auction_bid.findOne({ auction_id: data.auction_id })
         .sort({ price: -1 }) // Sắp xếp theo giá giảm dần để lấy giá lớn nhất
         .limit(1);
       console.log("highhh", highestBid);
-
+      const orderId = await Orders.findOne({ auction_id: data.auction_id })
+      if (orderId) {
+        console.log(orderId);
+        console.log("Auction has created. Cannot create new order.");
+        return;
+      }
       const order = await Orders.create({
         winner_id: highestBid.customer_id,
         auction_id: highestBid.auction_id,
