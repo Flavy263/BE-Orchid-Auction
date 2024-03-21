@@ -9,7 +9,7 @@ const WalletHistorys = require("../models/Wallet_History");
 const Config = require("../models/Config");
 const Auction_bid = require("../models/Auction_Bid");
 const AuctionMembers = require("../models/Auction_Member");
-
+const scheduledJobs = {};
 // Đường dẫn đến model của phiên đấu giá
 // router.post('/newAuction', async (req, res) => {
 //   try {
@@ -50,7 +50,52 @@ async function updateAuctionStatus(auctionId, newStatus, io) {
   }
 }
 
+// function scheduleAuctionStatusUpdates(auction, io) {
+//   const {
+//     _id,
+//     start_time,
+//     end_time,
+//     regitration_start_time,
+//     regitration_end_time,
+//   } = auction;
+//   const startTime = moment(start_time, "YYYY-MM-DDTHH:mm:ssZ").toDate();
+//   const endTime = moment(end_time, "YYYY-MM-DDTHH:mm:ssZ").toDate();
+//   const regitrationStartTime = moment(
+//     regitration_start_time,
+//     "YYYY-MM-DDTHH:mm:ssZ"
+//   ).toDate();
+//   const regitrationEndTime = moment(
+//     regitration_end_time,
+//     "YYYY-MM-DDTHH:mm:ssZ"
+//   ).toDate();
+//   // Kiểm tra và cập nhật trạng thái khi qua mốc thời gian
+//   schedule.scheduleJob(regitrationStartTime, async () => {
+//     await updateAuctionStatus(_id, "not yet auctioned", io);
+//   });
+
+//   schedule.scheduleJob(regitrationEndTime, async () => {
+//     await updateAuctionStatus(_id, "about to auction", io);
+//   });
+
+//   schedule.scheduleJob(startTime, async () => {
+//     await updateAuctionStatus(_id, "auctioning", io);
+//   });
+
+//   schedule.scheduleJob(endTime, async () => {
+//     await updateAuctionStatus(_id, "auctioned", io);
+//   });
+// }
+
 function scheduleAuctionStatusUpdates(auction, io) {
+  // Hủy các công việc lên lịch cũ (nếu có)
+  if (scheduledJobs[auction._id]) {
+    Object.values(scheduledJobs[auction._id]).forEach((job) => job.cancel());
+    delete scheduledJobs[auction._id]; // Xóa các công việc cũ sau khi hủy
+  }
+
+  // Khởi tạo lưu trữ mới cho đấu giá này
+  scheduledJobs[auction._id] = {};
+
   const {
     _id,
     start_time,
@@ -68,7 +113,7 @@ function scheduleAuctionStatusUpdates(auction, io) {
     regitration_end_time,
     "YYYY-MM-DDTHH:mm:ssZ"
   ).toDate();
-  // Kiểm tra và cập nhật trạng thái khi qua mốc thời gian
+
   schedule.scheduleJob(regitrationStartTime, async () => {
     await updateAuctionStatus(_id, "not yet auctioned", io);
   });
@@ -1055,7 +1100,6 @@ exports.updateAuction = async (req, res, next) => {
   try {
     const auctionId = req.params.auctionId;
 
-
     // Tìm và cập nhật trạng thái sản phẩm
     const updatedProduct = await Auctions.findOneAndUpdate(
       { _id: auctionId },
@@ -1065,11 +1109,13 @@ exports.updateAuction = async (req, res, next) => {
       { new: true }
     );
 
-
     // Kiểm tra xem sản phẩm có tồn tại và được cập nhật không
     if (updatedProduct) {
       // Sau khi phiên đấu giá được tạo, gọi hàm để lên lịch cập nhật trạng thái
-      await scheduleAuctionStatusUpdates(updatedProduct, req.app.get("socketio"));
+      await scheduleAuctionStatusUpdates(
+        updatedProduct,
+        req.app.get("socketio")
+      );
 
       res.statusCode = 200;
       res.setHeader("Content-Type", "application/json");
