@@ -13,7 +13,7 @@ exports.handleCheckPrice = async (priceStep, customerPrice, auctionPrice) => {
       return false;
     }
     return true;
-  } catch (error) {}
+  } catch (error) { }
 };
 
 // Handle new bid
@@ -151,28 +151,27 @@ exports.getMemberDoNotBid = async (req, res) => {
 exports.getAuctionHaveMemberDoNotBid = async (req, res) => {
   try {
     const hostId = req.params.host_id; // Lấy host_id từ request
-
+    console.log("id",hostId);
     // Lấy tất cả các auction_id từ bảng AuctionMember của host cụ thể
-    const auctionMembers = await AuctionMember.find({ host_id: hostId })
-      .distinct("auction_id")
-      .exec();
-
+    const auctionMembers = await AuctionMember.find({ host_id: hostId });
+    const auctionMemberId = auctionMembers.auction_id;
+    console.log("member", auctionMembers);
     // Lấy tất cả các auction_id từ bảng AuctionBid của host cụ thể
-    const auctionBids = await AuctionBid.find({ host_id: hostId })
-      .distinct("auction_id")
-      .exec();
-
+    const auctionBids = await AuctionBid.find({ host_id: hostId });
+    const auctionBidsId = auctionBids.auction_id;
+    console.log("bid", auctionBids);
     // Lọc ra các auction_id có trong AuctionMember nhưng không có trong AuctionBid
-    const unbidAuctionIds = auctionMembers.filter(
-      (auctionId) => !auctionBids.includes(auctionId)
-    );
+    // const unbidAuctionIds = auctionMemberId.filter(
+    //   (auctionId) => !auctionBidsId.includes(auctionId)
+    // );
+    console.log("unbid", unbidAuctionIds);
 
     // Kiểm tra nếu không có auction_id nào thoả mãn điều kiện, trả về mảng rỗng
-    if (unbidAuctionIds.length === 0) {
-      res.json({ unbidAuctionIds: [] });
-    } else {
-      res.json({ unbidAuctionIds });
-    }
+    // if (unbidAuctionIds.length === 0) {
+    //   res.json({ unbidAuctionIds: [] });
+    // } else {
+    // res.json({ unbidAuctionIds });
+    // }
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
