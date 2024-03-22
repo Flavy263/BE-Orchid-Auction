@@ -305,11 +305,16 @@ exports.registerJoinInAuction = async (req, res) => {
       member_id: userId,
     });
     await auctionMember.save();
+
+    const startTimeForMail = auction?.start_time
+    const startTime = new Date(startTimeForMail);
+
+    const formattedStartTime = `${startTime.getDate()}/${startTime.getMonth() + 1}/${startTime.getFullYear()} - ${startTime.getHours()}:${startTime.getMinutes()}`;
     try {
       const email = user.email;
       const subject = 'Register join in auction';
       const name = user.fullName;
-      const text = `Hi ${name}, congratulations on your successful registration to participate in the auction! Thanks for your registration.`;
+      const text = `Xin chào ${name}, chúc mừng bạn đã đăng ký tham gia đấu giá thành công! Cảm ơn bạn đã đăng ký. Thời gian bắt đầu cuộc đấu giá là ${formattedStartTime}`;
       // Gửi email xác thực
       await sendVerificationEmail(email, subject, text);
     } catch (error) {

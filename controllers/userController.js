@@ -127,17 +127,21 @@ exports.postAddUser = async (req, res, next) => {
     // Check if username already exists
     const existingUsername = await User.findOne({ username: req.body.username });
     const existingEmail = await User.findOne({ email: req.body.email });
+    const existingPhone = await User.findOne({ phone: req.body.phone });
     if (existingUsername && existingEmail) {
-      return res.status(400).json({ success: false, message: "Username and email already exist." });
+      return res.status(400).json({ success: false, message: "Username and email đã tồn tại." });
     }
     if (existingUsername) {
-      return res.status(400).json({ success: false, message: "Username already exists." });
+      return res.status(400).json({ success: false, message: "Username đã tồn tại." });
     }
 
     // Check if email already exists
 
     if (existingEmail) {
-      return res.status(400).json({ success: false, message: "Email already exists." });
+      return res.status(400).json({ success: false, message: "Email đã tồn tại." });
+    }
+    if (existingPhone) {
+      return res.status(400).json({ success: false, message: "Phone đã tồn tại." });
     }
 
 
