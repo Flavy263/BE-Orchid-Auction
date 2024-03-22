@@ -13,7 +13,7 @@ exports.handleCheckPrice = async (priceStep, customerPrice, auctionPrice) => {
       return false;
     }
     return true;
-  } catch (error) { }
+  } catch (error) {}
 };
 
 // Handle new bid
@@ -165,11 +165,14 @@ exports.getAuctionHaveMemberDoNotBid = async (req, res) => {
       (auctionId) => !auctionBids.includes(auctionId)
     );
 
+    const mapAuctions = unbidAuctionIds.map((e) => {
+      Auction.findById(e);
+    });
     // Kiểm tra nếu không có auction_id nào thoả mãn điều kiện, trả về mảng rỗng
-    if (unbidAuctionIds.length === 0) {
-      res.json({ unbidAuctionIds: [] });
+    if (mapAuctions.length === 0) {
+      res.json({ mapAuctions: [] });
     } else {
-      res.json({ unbidAuctionIds });
+      res.json({ mapAuctions });
     }
   } catch (error) {
     console.error(error);
