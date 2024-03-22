@@ -153,17 +153,26 @@ exports.getAuctionHaveMemberDoNotBid = async (req, res) => {
     const hostId = req.params.host_id; // Lấy host_id từ request
 
     // Lấy tất cả các auction_id từ bảng AuctionMember của host cụ thể
-    const auctionMembers = await AuctionMember.find({ host_id: hostId }).distinct("auction_id").exec();
+    const auctionMembers = await AuctionMember.find({ host_id: hostId })
+      .distinct("auction_id")
+      .exec();
 
     // Lấy tất cả các auction_id từ bảng AuctionBid của host cụ thể
-    const auctionBids = await AuctionBid.find({ host_id: hostId }).distinct("auction_id").exec();
+    const auctionBids = await AuctionBid.find({ host_id: hostId })
+      .distinct("auction_id")
+      .exec();
 
     // Lọc ra các auction_id có trong AuctionMember nhưng không có trong AuctionBid
     const unbidAuctionIds = auctionMembers.filter(
       (auctionId) => !auctionBids.includes(auctionId)
     );
 
-    res.json({ unbidAuctionIds });
+    // Kiểm tra nếu không có auction_id nào thoả mãn điều kiện, trả về mảng rỗng
+    if (unbidAuctionIds.length === 0) {
+      res.json({ unbidAuctionIds: [] });
+    } else {
+      res.json({ unbidAuctionIds });
+    }
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -178,7 +187,9 @@ exports.getUnregisteredAuction = async (req, res) => {
     const auctions = await Auction.find({ host_id: hostId }).exec();
 
     // Lấy tất cả các auction_id đã được đăng ký tham gia đấu giá của host cụ thể
-    const registeredAuctionIds = await AuctionMember.find({ host_id: hostId }).distinct("auction_id").exec();
+    const registeredAuctionIds = await AuctionMember.find({ host_id: hostId })
+      .distinct("auction_id")
+      .exec();
 
     // Lọc ra các auction_id của host cụ thể mà không có người đăng ký tham gia
     const unregisteredAuctionIds = auctions
@@ -187,7 +198,12 @@ exports.getUnregisteredAuction = async (req, res) => {
       )
       .map((auction) => auction._id);
 
-    res.json({ unregisteredAuctionIds });
+    // Kiểm tra nếu không có auction_id nào thoả mãn điều kiện, trả về mảng rỗng
+    if (unregisteredAuctionIds.length === 0) {
+      res.json({ unregisteredAuctionIds: [] });
+    } else {
+      res.json({ unregisteredAuctionIds });
+    }
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
