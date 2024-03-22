@@ -6,6 +6,7 @@ const AuctionMember = require("../models/Auction_Member");
 const User = require("../models/User");
 const Config = require("../models/Config");
 const nodemailer = require('nodemailer');
+const CONFIGMAIL = require("../config");
 
 exports.getWallet = (req, res, next) => {
   Wallets.find({})
@@ -224,12 +225,12 @@ async function sendVerificationEmail(userEmail, subject, text) {
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        user: Config.ADMIN_EMAIL,
-        pass: Config.ADMIN_PASS_EMAIL
+        user: CONFIGMAIL.ADMIN_EMAIL,
+        pass: CONFIGMAIL.ADMIN_PASS_EMAIL
       }
     });
     const mailOptions = {
-      from: Config.ADMIN_EMAIL,
+      from: CONFIGMAIL.ADMIN_EMAIL,
       to: userEmail,
       subject: subject,
       text: text
@@ -304,18 +305,23 @@ exports.registerJoinInAuction = async (req, res) => {
       member_id: userId,
     });
     await auctionMember.save();
+    try {
+      const email = user.email;
+      const subject = 'Register join in auction';
+      const name = user.fullName;
+      const text = `Hi ${name}, congratulations on your successful registration to participate in the auction! Thanks for your registration.`;
+      // Gửi email xác thực
+      await sendVerificationEmail(email, subject, text);
+    } catch (error) {
+      console.log(error);
+    }
     // Send mail register join in auction
-    const email = user.email;
-    const subject = 'Register join in auction';
-    const name = user.name;
-    const text = `Hi ${name}, \n\ncongratulations on your successful registration to participate in the auction! Thanks for your registration.`;
-    // Gửi email xác thực
-    await sendVerificationEmail(email, subject, text);
+
 
     res.status(200).json({ message: "Đã đặt giá thầu thành công." });
   } catch (error) {
     console.error("Error placing bid:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: "Lỗi đặt giá thầu" });
   }
 };
 

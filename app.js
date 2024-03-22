@@ -15,7 +15,7 @@ const ReportRequestRouter = require("./routes/reportRequest");
 const ConfigRouter = require("./routes/config");
 const orderRouter = require("./routes/order");
 const nodemailer = require('nodemailer');
-
+const Config = require("./config")
 
 const Orders = require("./models/Order")
 const Auction = require("./models/Auction")
@@ -107,8 +107,8 @@ io.on("connection", (socket) => {
       const user = User.findById(highestBid.customer_id);
       const email = user.email;
       const subject = 'Winner Auction';
-      const name = user.name;
-      const text = `Hi ${name}, \n\nCongratulations on becoming the winner of the auction. Please go to the order section to see detailed information! Thanks for your using.`;
+      const name = user.fullName;
+      const text = `Hi ${name}, Congratulations on becoming the winner of the auction. Please go to the order section to see detailed information! Thanks for your using.`;
       // Gửi email xác thực
       await sendVerificationEmail(email, subject, text);
 

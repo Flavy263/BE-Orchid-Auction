@@ -495,8 +495,10 @@ exports.getOrderByMemberID = async (req, res) => {
   const winnerId = req.params.memberId;
   try {
     const orders = await Orders.find({
-      winner_id: winnerId,
-      host_id: winnerId,
+      $or: [
+        { winner_id: winnerId },
+        { host_id: winnerId }
+      ]
     });
     res.json(orders);
   } catch (err) {
