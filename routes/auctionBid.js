@@ -9,4 +9,5 @@ router.post('/:auctionId/:customerId/new-bid', auctionBidController.handleNewBid
 
 router.get('/auctionBid/:auctionId',auctionBidController.handleFindMaxPrice)
 router.get('/auctionBid-sortDes/:auctionId',auctionBidController.getAuctionBidSortDes)
+router.get('/getMemberDoNotBid/:auctionId',auctionBidController.getMemberDoNotBid)
 module.exports = router;

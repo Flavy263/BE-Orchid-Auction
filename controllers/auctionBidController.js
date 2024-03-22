@@ -5,6 +5,7 @@ const AuctionBid = require("../models/Auction_Bid");
 const moment = require("moment");
 const User = require("../models/User");
 const Wallet = require("../models/Wallet");
+const AuctionMember = require("../models/Auction_Member");
 
 exports.handleCheckPrice = async (priceStep, customerPrice, auctionPrice) => {
   try {
@@ -118,6 +119,31 @@ exports.getAuctionBidSortDes = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.getMemberDoNotBid = async (req, res) => {
+  try {
+    const auctionId = req.params.auctionId;
+
+    // Find members who participated in the auction
+    const auctionMembers = await AuctionMember.find({ auction_id: auctionId });
+
+    // Find members who placed bids in the auction
+    const auctionBids = await AuctionBid.find({ auction_id: auctionId });
+
+    // Extract member IDs from auctionBids
+    const bidMemberIds = auctionBids.map((bid) => bid.customer_id);
+
+    // Filter out members who placed bids from auctionMembers
+    const membersWithoutBids = auctionMembers.filter(
+      (member) => !bidMemberIds.includes(member.member_id)
+    );
+
+    res.json({ membersWithoutBids });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
