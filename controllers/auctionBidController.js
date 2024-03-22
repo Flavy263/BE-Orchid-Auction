@@ -165,9 +165,12 @@ exports.getAuctionHaveMemberDoNotBid = async (req, res) => {
       (auctionId) => !auctionBids.includes(auctionId)
     );
 
-    const mapAuctions = unbidAuctionIds.map((e) => {
-      Auction.findById(e);
-    });
+    const mapAuctions = await Promise.all(
+      unbidAuctionIds.map((e) => {
+        return Auction.findById(e).exec(); // Trả về một Promise
+      })
+    );
+
     // Kiểm tra nếu không có auction_id nào thoả mãn điều kiện, trả về mảng rỗng
     if (mapAuctions.length === 0) {
       res.json({ mapAuctions: [] });
