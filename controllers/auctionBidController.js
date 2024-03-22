@@ -24,7 +24,7 @@ exports.handleNewBid = async (req, res) => {
     const auction = await Auction.findById(auctionId);
     const customer = await User.findById(customerId);
     const auctionBid = await AuctionBid.find({ auction_id: auctionId });
-    const customerWallet = await Wallet.find({ user_id: customerId })
+    const customerWallet = await Wallet.find({ user_id: customerId });
     if (!auctionBid) {
       throw new Error("AuctionBid not found");
     }
@@ -50,12 +50,13 @@ exports.handleNewBid = async (req, res) => {
     // const maxPrice = maxBid ? maxBid.price : 0;
     // console.log("maxPid", maxBid);
     if (price <= maxBid.price) {
-      throw new Error(`Không dc nhập số tiền nhỏ hơn hoặc bằng ${maxBid.price}`);
-
+      throw new Error(
+        `Không dc nhập số tiền nhỏ hơn hoặc bằng ${maxBid.price}`
+      );
     }
     // Kiểm tra xem giá mới có phải là bội của bước giá không
     if ((price - maxBid.price) % auction.price_step !== 0) {
-      throw new Error('Price is not a multiple of the price step');
+      throw new Error("Price is not a multiple of the price step");
     }
 
     const newBid = new AuctionBid({
@@ -144,6 +145,31 @@ exports.getMemberDoNotBid = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+exports.getAuctionHaveMemberDoNotBid = async (req, res) => {
+  try {
+    const auctionId = req.params.auctionId;
+    // Tìm tất cả các auctionIds có trong auctionMember
+    const auctionMembers = await AuctionMember.find({}, auctionId);
+    const auctionIdsInMembers = auctionMembers.map(
+      (member) => member.auction_id
+    );
+
+    // Tìm tất cả các auctionIds có trong auctionBid
+    const auctionBids = await AuctionBid.find({}, auctionId);
+    const auctionIdsInBids = auctionBids.map((bid) => bid.auction_id);
+
+    // Lọc ra các auctionIds có trong auctionMember nhưng không có trong auctionBid
+    const auctionIdsNotBidding = auctionIdsInMembers.filter(
+      (id) => !auctionIdsInBids.includes(id)
+    );
+
+    return auctionIdsNotBidding;
+  } catch (error) {
+    console.error("Error:", error);
+    throw error;
   }
 };
 
