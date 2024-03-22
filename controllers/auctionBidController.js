@@ -161,17 +161,16 @@ exports.getAuctionHaveMemberDoNotBid = async (req, res) => {
     const auctionBids = await AuctionBid.distinct("auction_id").exec();
 
     // Lọc ra các auction_id có trong AuctionMember nhưng không có trong AuctionBid
-    // const unbidAuctionIds = auctionMemberId.filter(
-    //   (auctionId) => !auctionBidsId.includes(auctionId)
-    // );
-    console.log("unbid", unbidAuctionIds);
+    const unbidAuctionIds = auctionMembers.filter(
+      (auctionId) => !auctionBids.includes(auctionId)
+    );
 
     // Kiểm tra nếu không có auction_id nào thoả mãn điều kiện, trả về mảng rỗng
-    // if (unbidAuctionIds.length === 0) {
-    //   res.json({ unbidAuctionIds: [] });
-    // } else {
-    // res.json({ unbidAuctionIds });
-    // }
+    if (unbidAuctionIds.length === 0) {
+      res.json({ unbidAuctionIds: [] });
+    } else {
+      res.json({ unbidAuctionIds });
+    }
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });
