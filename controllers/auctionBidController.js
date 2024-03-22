@@ -167,7 +167,7 @@ exports.getAuctionHaveMemberDoNotBid = async (req, res) => {
 
     const mapAuctions = await Promise.all(
       unbidAuctionIds.map((e) => {
-        return Auction.findById(e).exec(); // Trả về một Promise
+        return Auction.findById(e).populate("product_id").exec(); // Trả về một Promise
       })
     );
 
@@ -191,9 +191,9 @@ exports.getUnregisteredAuction = async (req, res) => {
     const auctions = await Auction.find({ host_id: hostId }).exec();
 
     // Lấy tất cả các auction_id đã được đăng ký tham gia đấu giá của host cụ thể
-    const registeredAuctionIds = await AuctionMember.find({ host_id: hostId })
-      .distinct("auction_id")
-      .exec();
+    const registeredAuctionIds = await AuctionMember.distinct("auction_id", {
+      hostId,
+    }).exec();
 
     // Lọc ra các auction_id của host cụ thể mà không có người đăng ký tham gia
     const unregisteredAuctionIds = auctions
@@ -202,11 +202,17 @@ exports.getUnregisteredAuction = async (req, res) => {
       )
       .map((auction) => auction._id);
 
+    const mapAuctions = await Promise.all(
+      unregisteredAuctionIds.map((e) => {
+        return Auction.findById(e).populate("product_id").exec(); // Trả về một Promise
+      })
+    );
+
     // Kiểm tra nếu không có auction_id nào thoả mãn điều kiện, trả về mảng rỗng
-    if (unregisteredAuctionIds.length === 0) {
-      res.json({ unregisteredAuctionIds: [] });
+    if (mapAuctions.length === 0) {
+      res.json({ mapAuctions: [] });
     } else {
-      res.json({ unregisteredAuctionIds });
+      res.json({ mapAuctions });
     }
   } catch (error) {
     console.error(error);
