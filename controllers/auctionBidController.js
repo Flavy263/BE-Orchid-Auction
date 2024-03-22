@@ -164,7 +164,7 @@ exports.getAuctionHaveMemberDoNotBid = async (req, res) => {
 
     // Lọc ra các auction_id có trong AuctionMember nhưng không có trong AuctionBid
     const unbidAuctionIds = auctionMembers.filter(
-      (auctionId) => !auctionBids.includes(auctionId)
+      (auctionId) => !auctionBids.some(auctionBid => auctionBid.auction_id.equals(auctionId))
     );
 
     const mapAuctions = await Promise.all(
