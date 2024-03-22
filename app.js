@@ -14,10 +14,13 @@ const walletRouter = require("./routes/wallet");
 const ReportRequestRouter = require("./routes/reportRequest");
 const ConfigRouter = require("./routes/config");
 const orderRouter = require("./routes/order");
+const nodemailer = require('nodemailer');
+
 
 const Orders = require("./models/Order")
 const Auction = require("./models/Auction")
 const Auction_bid = require("./models/Auction_Bid")
+const User = require("./models/User");
 
 const cors = require("cors");
 var app = express();
@@ -38,6 +41,30 @@ const io = require("socket.io")(server, {
 // const url = "mongodb+srv://nguyenhoangphat852:TX0TzRNCxPcAuB8n@cluster0.k6s0uzi.mongodb.net/?retryWrites=true&w=majority";
 const url = "mongodb://127.0.0.1:27017/MutantOrchidAuction";
 const connect = mongoose.connect(url);
+// Send mail function
+async function sendVerificationEmail(userEmail, subject, text) {
+  try {
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: Config.ADMIN_EMAIL,
+        pass: Config.ADMIN_PASS_EMAIL
+      }
+    });
+    const mailOptions = {
+      from: Config.ADMIN_EMAIL,
+      to: userEmail,
+      subject: subject,
+      text: text
+    };
+
+    await transporter.sendMail(mailOptions);
+    // console.log('Verification email sent successfully.');
+  } catch (error) {
+    // console.error('Error sending verification email:', error);
+    throw error;
+  }
+}
 app.set("socketio", io);
 io.on("connection", (socket) => {
   console.log("A client connected");
@@ -75,6 +102,16 @@ io.on("connection", (socket) => {
       });
 
       await Auction.findByIdAndUpdate(data.auction_id, { status: "auctioned" });
+
+      // Send mail winner in auction
+      const user = User.findById(highestBid.customer_id);
+      const email = user.email;
+      const subject = 'Winner Auction';
+      const name = user.name;
+      const text = `Hi ${name}, \n\nCongratulations on becoming the winner of the auction. Please go to the order section to see detailed information! Thanks for your using.`;
+      // Gửi email xác thực
+      await sendVerificationEmail(email, subject, text);
+
       console.log("Order Created ", order);
     } catch (err) {
       console.error("Error creating order: ", err);

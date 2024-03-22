@@ -308,7 +308,7 @@ exports.registerJoinInAuction = async (req, res) => {
     const email = user.email;
     const subject = 'Register join in auction';
     const name = user.name;
-    const text = `Hi ${name}, congratulations on your successful registration to participate in the auction! Thanks for your registration.`;
+    const text = `Hi ${name}, \n\ncongratulations on your successful registration to participate in the auction! Thanks for your registration.`;
     // Gửi email xác thực
     await sendVerificationEmail(email, subject, text);
 
