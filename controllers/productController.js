@@ -157,16 +157,14 @@ exports.putUpdateProductLol = async (req, res, next) => {
       return res.status(404).json({ error: "Product not found." });
     }
     // Kiểm tra xem có file ảnh và video được tải lên hay không
-    if (!req.files || !req.files["image"] || !req.files["video"]) {
-      return res.status(400).json({ error: "No image or video uploaded." });
+    if (req.files && req.files["image"]) {
+      const imageUrls = req.files["image"].map((image) => image.path);
+      product.image = imageUrls;
     }
-    // Sử dụng thông tin từ đối tượng result trực tiếp
-    const imageUrls = req.files["image"].map((image) => image.path);
-    const videoUrls = req.files["video"].map((video) => video.path);
-    // Update product with new image and video URLs
-    product.image = imageUrls;
-    product.video = videoUrls;
-
+    if (req.files && req.files["video"]) {
+      const videoUrls = req.files["video"].map((video) => video.path);
+      product.video = videoUrls;
+    }
     // Update product information if provided in request body
     if (req.body.name) {
       product.name = req.body.name;
