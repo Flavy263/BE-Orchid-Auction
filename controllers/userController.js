@@ -165,7 +165,7 @@ exports.postAddUser = async (req, res, next) => {
     });
 
     // Return success response
-    res.status(200).json({ success: true, message: "Registration Successful!" });
+    res.status(200).json({ success: true, user:user, message: "Registration Successful!" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: "Internal Server Error" });
@@ -200,7 +200,7 @@ exports.postLoginUser = async (req, res, next) => {
         success: true,
         token: token,
         user: user,
-        status: "You are successfully logged in!",
+        status: "Bạn đã đăng nhập thành công!",
       });
     });
   } catch (error) {
