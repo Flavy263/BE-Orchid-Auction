@@ -150,11 +150,13 @@ exports.getMemberDoNotBid = async (req, res) => {
 
 exports.getAuctionHaveMemberDoNotBid = async (req, res) => {
   try {
-    // Lấy tất cả các auction_id từ bảng AuctionMember
-    const auctionMembers = await AuctionMember.distinct("auction_id").exec();
+    const hostId = req.params.host_id; // Lấy host_id từ request
 
-    // Lấy tất cả các auction_id từ bảng AuctionBid
-    const auctionBids = await AuctionBid.distinct("auction_id").exec();
+    // Lấy tất cả các auction_id từ bảng AuctionMember của host cụ thể
+    const auctionMembers = await AuctionMember.find({ host_id: hostId }).distinct("auction_id").exec();
+
+    // Lấy tất cả các auction_id từ bảng AuctionBid của host cụ thể
+    const auctionBids = await AuctionBid.find({ host_id: hostId }).distinct("auction_id").exec();
 
     // Lọc ra các auction_id có trong AuctionMember nhưng không có trong AuctionBid
     const unbidAuctionIds = auctionMembers.filter(
@@ -170,15 +172,15 @@ exports.getAuctionHaveMemberDoNotBid = async (req, res) => {
 
 exports.getUnregisteredAuction = async (req, res) => {
   try {
-    // Lấy tất cả các cuộc đấu giá
-    const auctions = await Auction.find().exec();
+    const hostId = req.params.host_id; // Lấy host_id từ request
 
-    // Lấy tất cả các auction_id đã được đăng ký tham gia đấu giá
-    const registeredAuctionIds = await AuctionMember.distinct(
-      "auction_id"
-    ).exec();
+    // Lấy tất cả các cuộc đấu giá của host cụ thể
+    const auctions = await Auction.find({ host_id: hostId }).exec();
 
-    // Lọc ra các auction_id không có người đăng ký tham gia
+    // Lấy tất cả các auction_id đã được đăng ký tham gia đấu giá của host cụ thể
+    const registeredAuctionIds = await AuctionMember.find({ host_id: hostId }).distinct("auction_id").exec();
+
+    // Lọc ra các auction_id của host cụ thể mà không có người đăng ký tham gia
     const unregisteredAuctionIds = auctions
       .filter(
         (auction) => !registeredAuctionIds.includes(auction._id.toString())
