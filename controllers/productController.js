@@ -197,14 +197,9 @@ exports.putUpdateProductLol = async (req, res, next) => {
 
 exports.deleteProduct = (req, res, next) => {
   const productId = req.params.productId;
-  Product.findByIdAndUpdate(
-    productId,
-    { $set: { status: false } },
-    { new: true }
-  )
-    .then((updatedProduct) => {
-      if (!updatedProduct) {
-        // Nếu không tìm thấy sản phẩm, trả về lỗi
+  Product.findByIdAndDelete(productId)
+    .then((deletedProduct) => {
+      if (!deletedProduct) {
         const err = new Error(`Product with ID ${productId} not found.`);
         err.status = 404;
         throw err;
@@ -214,8 +209,8 @@ exports.deleteProduct = (req, res, next) => {
       res.setHeader("Content-Type", "application/json");
       res.json({
         success: true,
-        status: "Update Successful!",
-        updatedProduct: updatedProduct,
+        status: "Delete Successful!",
+        deletedProduct: deletedProduct,
       });
     })
     .catch((err) => next(err));
