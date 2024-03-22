@@ -158,7 +158,9 @@ exports.getAuctionHaveMemberDoNotBid = async (req, res) => {
     }).exec();
 
     // Lấy tất cả các auction_id từ bảng AuctionBid
-    const auctionBids = await AuctionBid.distinct("auction_id").exec();
+    const auctionBids = await AuctionBid.distinct("auction_id", {
+      customer_id: { $exists: true },
+    }).exec();
 
     // Lọc ra các auction_id có trong AuctionMember nhưng không có trong AuctionBid
     const unbidAuctionIds = auctionMembers.filter(
