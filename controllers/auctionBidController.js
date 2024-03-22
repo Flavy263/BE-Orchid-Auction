@@ -150,17 +150,15 @@ exports.getMemberDoNotBid = async (req, res) => {
 
 exports.getAuctionHaveMemberDoNotBid = async (req, res) => {
   try {
-    const hostId = req.params.host_id; // Lấy host_id từ request
+    const { host_id } = req.query;
 
-    // Lấy tất cả các auction_id từ bảng AuctionMember của host cụ thể
-    const auctionMembers = await AuctionMember.find({ host_id: hostId })
-      .distinct("auction_id")
-      .exec();
+    // Lấy tất cả các auction_id từ bảng AuctionMember cho host_id chỉ định
+    const auctionMembers = await AuctionMember.distinct("auction_id", {
+      host_id,
+    }).exec();
 
-    // Lấy tất cả các auction_id từ bảng AuctionBid của host cụ thể
-    const auctionBids = await AuctionBid.find({ host_id: hostId })
-      .distinct("auction_id")
-      .exec();
+    // Lấy tất cả các auction_id từ bảng AuctionBid
+    const auctionBids = await AuctionBid.distinct("auction_id").exec();
 
     // Lọc ra các auction_id có trong AuctionMember nhưng không có trong AuctionBid
     const unbidAuctionIds = auctionMembers.filter(
