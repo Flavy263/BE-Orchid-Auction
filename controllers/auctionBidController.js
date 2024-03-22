@@ -150,26 +150,45 @@ exports.getMemberDoNotBid = async (req, res) => {
 
 exports.getAuctionHaveMemberDoNotBid = async (req, res) => {
   try {
-    const auctionId = req.params.auctionId;
-    // Tìm tất cả các auctionIds có trong auctionMember
-    const auctionMembers = await AuctionMember.find({}, auctionId);
-    const auctionIdsInMembers = auctionMembers.map(
-      (member) => member.auction_id
+    // Lấy tất cả các auction_id từ bảng AuctionMember
+    const auctionMembers = await AuctionMember.distinct("auction_id").exec();
+
+    // Lấy tất cả các auction_id từ bảng AuctionBid
+    const auctionBids = await AuctionBid.distinct("auction_id").exec();
+
+    // Lọc ra các auction_id có trong AuctionMember nhưng không có trong AuctionBid
+    const unbidAuctionIds = auctionMembers.filter(
+      (auctionId) => !auctionBids.includes(auctionId)
     );
 
-    // Tìm tất cả các auctionIds có trong auctionBid
-    const auctionBids = await AuctionBid.find({}, auctionId);
-    const auctionIdsInBids = auctionBids.map((bid) => bid.auction_id);
-
-    // Lọc ra các auctionIds có trong auctionMember nhưng không có trong auctionBid
-    const auctionIdsNotBidding = auctionIdsInMembers.filter(
-      (id) => !auctionIdsInBids.includes(id)
-    );
-
-    return auctionIdsNotBidding;
+    res.json({ unbidAuctionIds });
   } catch (error) {
-    console.error("Error:", error);
-    throw error;
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+exports.getUnregisteredAuction = async (req, res) => {
+  try {
+    // Lấy tất cả các cuộc đấu giá
+    const auctions = await Auction.find().exec();
+
+    // Lấy tất cả các auction_id đã được đăng ký tham gia đấu giá
+    const registeredAuctionIds = await AuctionMember.distinct(
+      "auction_id"
+    ).exec();
+
+    // Lọc ra các auction_id không có người đăng ký tham gia
+    const unregisteredAuctionIds = auctions
+      .filter(
+        (auction) => !registeredAuctionIds.includes(auction._id.toString())
+      )
+      .map((auction) => auction._id);
+
+    res.json({ unregisteredAuctionIds });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
