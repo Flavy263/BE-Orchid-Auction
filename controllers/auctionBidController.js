@@ -152,19 +152,26 @@ exports.getAuctionHaveMemberDoNotBid = async (req, res) => {
   try {
     const { host_id } = req.query;
 
+    const auctionId = await Auction.find({ host_id: host_id });
+
     // Lấy tất cả các auction_id từ bảng AuctionMember cho host_id chỉ định
-    const auctionMembers = await AuctionMember.distinct("auction_id", {
-      host_id,
-    }).exec();
+    const auctionMembers = await AuctionMember.find({
+      auction_id: auctionId,
+      member_id: { $ne: host_id },
+    }).distinct("auction_id");
 
     // Lấy tất cả các auction_id từ bảng AuctionBid
-    const auctionBids = await AuctionBid.distinct("auction_id", {
+    const auctionBids = await AuctionBid.find({
+      auction_id: auctionId,
       customer_id: { $exists: true },
-    }).exec();
+    }).distinct("auction_id");
 
     // Lọc ra các auction_id có trong AuctionMember nhưng không có trong AuctionBid
     const unbidAuctionIds = auctionMembers.filter(
-      (auctionId) => !auctionBids.some(auctionBid => auctionBid.auction_id.equals(auctionId))
+      (auctionId) =>
+        !auctionBids.find(
+          (bid) => bid && bid.toString() === auctionId.toString()
+        )
     );
 
     const mapAuctions = await Promise.all(
@@ -189,20 +196,19 @@ exports.getUnregisteredAuction = async (req, res) => {
   try {
     const hostId = req.params.host_id; // Lấy host_id từ request
 
-    // Lấy tất cả các cuộc đấu giá của host cụ thể
-    const auctions = await Auction.find({ host_id: hostId }).exec();
+    const auctions = await Auction.find({ host_id: hostId });
 
-    // Lấy tất cả các auction_id đã được đăng ký tham gia đấu giá của host cụ thể
-    const registeredAuctionIds = await AuctionMember.distinct("auction_id", {
-      hostId,
-    }).exec();
+    const registeredAuctionIds = AuctionMember.find({
+      auction_id: auctions._id,
+      member_id: { $ne: hostId },
+    }).distinct("auction_id");
 
-    // Lọc ra các auction_id của host cụ thể mà không có người đăng ký tham gia
-    const unregisteredAuctionIds = auctions
-      .filter(
-        (auction) => !registeredAuctionIds.includes(auction._id.toString())
-      )
-      .map((auction) => auction._id);
+    const unregisteredAuctionIds = auctions.filter(
+      (auctionId) =>
+        !registeredAuctionIds.find(
+          (bid) => bid && bid.toString() === auctionId.toString()
+        )
+    );
 
     const mapAuctions = await Promise.all(
       unregisteredAuctionIds.map((e) => {
